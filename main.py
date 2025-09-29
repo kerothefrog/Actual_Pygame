@@ -1,8 +1,20 @@
 import pygame, sys
-from starting_background import StartMenu
+from starting_menu import StartMenu
 from settings import Settings
 from main_menu import MainMenu
 from credits import Credits
+
+def get_class(state:str):
+    if state == 'start menu':
+        return start_menu
+    elif state == 'settings':
+        return settings
+    elif state == 'main_menu':
+        return main_menu
+    elif state == 'credits':
+        return credits
+    else:
+        raise ValueError('Invalid state')
 
 pygame.init()
 screen = pygame.display.set_mode((1200, 600))
@@ -20,17 +32,12 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                curr_state = get_class(curr_state).if_button_pressed()
 
 
-    if curr_state == 'start menu':
-        curr_state = start_menu.draw()
-    elif curr_state == 'main_menu':
-        curr_state = main_menu.draw()
-    elif curr_state == 'settings':
-        curr_state = settings.draw()
-    elif curr_state == 'credits':
-        curr_state = credits.draw()
-
+    curr_state = get_class(curr_state).draw()
 
     pygame.display.update()
     clock.tick(60)

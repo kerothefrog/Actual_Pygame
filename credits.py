@@ -15,7 +15,6 @@ class Credits:
             text_color="#FFFFFF",
             color="#5D5D5D",
             hover_color="#A7A7A7",
-            size=(150,75)
         ))
 
     def draw(self):
@@ -24,6 +23,9 @@ class Credits:
         self.back_button.draw(self.screen)
         self.back_button.update(self.screen)
 
+        return 'credits'
+
+    def if_button_pressed(self):
         if self.back_button.sprite.is_pressed():
             return 'settings'
         else:

@@ -15,7 +15,6 @@ class Settings:
             text_color="#FFFFFF",
             color="#5D5D5D",
             hover_color="#A7A7A7",
-            size=(150,75)
         ))
 
         self.credits_button = pygame.sprite.GroupSingle(Interactive_button(
@@ -36,6 +35,10 @@ class Settings:
         self.credits_button.draw(self.screen)
         self.credits_button.update(self.screen)
 
+        return 'settings'
+
+
+    def if_button_pressed(self):
         if self.back_button.sprite.is_pressed():
             return 'start menu'
         if self.credits_button.sprite.is_pressed():

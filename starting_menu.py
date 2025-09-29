@@ -51,6 +51,10 @@ class StartMenu:
         self.setting_button.draw(self.screen)
         self.setting_button.update(self.screen)
 
+        return 'start menu'
+
+
+    def if_button_pressed(self):
         if self.play_button.sprite.is_pressed():
             return 'main_menu'
         elif self.quit_button.sprite.is_pressed():
