@@ -6,37 +6,34 @@ class StartMenu:
     def __init__(self, screen:pygame.Surface):
         self.screen = screen
         self.image = pygame.image.load('assets/start_menu_bg.png').convert()
-        self.image = pygame.transform.scale(self.image, (1200,600))
+        self.image = pygame.transform.scale(self.image, (900,400))
         self.rect = self.image.get_rect(topleft=(0,0))
 
         self.play_button = pygame.sprite.GroupSingle(Interactive_button(
-            location=(200,200),
-            font=pygame.font.Font(None,50),
+            location=(200,100),
+            font=pygame.font.Font(None,40),
             text='Play',
             text_color="#FFFFFF",
             color="#5D5D5D",
-            hover_color="#A7A7A7",
-            size=(150,75)
+            hover_color="#A7A7A7"
         ))
 
         self.quit_button = pygame.sprite.GroupSingle(Interactive_button(
-            location=(200,300),
-            font=pygame.font.Font(None,50),
+            location=(200,200),
+            font=pygame.font.Font(None,40),
             text='Quit',
             text_color="#FFFFFF",
             color="#5D5D5D",
-            hover_color="#A7A7A7",
-            size=(150,75)
+            hover_color="#A7A7A7"
         ))
 
         self.setting_button = pygame.sprite.GroupSingle(Interactive_button(
-            location=(200,400),
-            font=pygame.font.Font(None,50),
+            location=(200,300),
+            font=pygame.font.Font(None,40),
             text='Settings',
             text_color="#FFFFFF",
             color="#5D5D5D",
-            hover_color="#A7A7A7",
-            size=(200,75)
+            hover_color="#A7A7A7"
         ))
 
     def draw(self):

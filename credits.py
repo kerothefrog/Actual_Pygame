@@ -5,12 +5,12 @@ class Credits:
     def __init__(self, screen:pygame.Surface):
         self.screen = screen
         self.image = pygame.image.load('assets/credits_bg.png').convert()
-        self.image = pygame.transform.scale(self.image, (1200,600))
+        self.image = pygame.transform.scale(self.image, (900,400))
         self.rect = self.image.get_rect(topleft=(0,0))
 
         self.back_button = pygame.sprite.GroupSingle(Interactive_button(
             location=(100,100),
-            font=pygame.font.Font(None,50),
+            font=pygame.font.Font(None,40),
             text='Back',
             text_color="#FFFFFF",
             color="#5D5D5D",

@@ -17,7 +17,7 @@ def get_class(state:str):
         raise ValueError('Invalid state')
 
 pygame.init()
-screen = pygame.display.set_mode((1200, 600))
+screen = pygame.display.set_mode((900, 400))
 pygame.display.set_caption("31426")
 clock = pygame.time.Clock()
 
