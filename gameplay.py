@@ -1,4 +1,5 @@
 import pygame, time, os, random, sys
+from button import Interactive_button
 
 
 # --- 初始化 ---
@@ -20,14 +21,14 @@ def play_game(screen:pygame.Surface):
     YELLOW = (255, 255, 0)
 
     # --- 遊戲參數 ---
-    player_money = 0
+    player_money = 1000
     last_income_time = time.time()
     BASE_HP = 200
 
 
     # --- 圖片路徑 ---
-    MELEE_IMAGE_PATH = "assets/bird/S__2269203_0.png"
-    RANGE_IMAGE_PATH = "archer.png"
+    MELEE_IMAGE_PATH = "birdani/kiwi_bird_1.png"
+    RANGE_IMAGE_PATH = "birdani/kiwi_bird_attack_1.png"
     ENEMY_IMAGE_PATH = "mushrooms/香菇1_20250429134900.png"
 
     def load_image(path, size=(30,30), color=BLUE):
@@ -70,8 +71,7 @@ def play_game(screen:pygame.Surface):
     class Arrow(pygame.sprite.Sprite):
         def __init__(self, x, y, target, damage, speed=4):
             super().__init__()
-            self.image = pygame.Surface((15,5))
-            self.image.fill(BLUE)
+            self.image = load_image("birdani/melee_kiwi.png",(20,20))
             self.rect = self.image.get_rect(center=(x,y))
             self.target = target
             self.damage = damage
@@ -261,12 +261,12 @@ def play_game(screen:pygame.Surface):
                 sys.exit()
             if event.type == enemy_spawn:   #enemy spawning
                 for i in range(int(pygame.time.get_ticks()/30000)+1):
-                    enemies.add(Enemy(WIDTH + (random.randint(1,5)*100), 300))
+                    enemies.add(Enemy(WIDTH + (random.randint(100,400)), 300))
             if event.type==pygame.KEYDOWN:
                 if event.key==pygame.K_SPACE:
                     if player_money >= 10:
                         walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                        melee_attack_images = [pygame.image.load(f"birdani/kiwi_bird_attack_{i}.png") for i in range(1,5)]
+                        melee_attack_images = [pygame.image.load(f"birdani/kiwi_bird_jump_{i}.png") for i in range(1,8)]
                         allies.add(Unit(
                             x=50,
                             y=300,
@@ -279,12 +279,11 @@ def play_game(screen:pygame.Surface):
                             move_speed=1.0, 
                             attack_range=40
                         ))
-
                         player_money -=10
                 elif event.key==pygame.K_m:
                     if player_money >= 15:
                         walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                        ranged_attack_image = [pygame.image.load(f"birdani/kiwi_bird_jump_{i}.png") for i in range(1,8)]
+                        ranged_attack_image = [pygame.image.load(f"birdani/kiwi_bird_attack_{i}.png") for i in range(1,5)]
                         allies.add(Unit(
                             x=50, 
                             y=300, 
