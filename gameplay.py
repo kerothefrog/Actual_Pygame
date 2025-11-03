@@ -1,5 +1,5 @@
 import pygame, time, os, random, sys
-from button import Interactive_button
+import g_var
 
 
 # --- 初始化 ---
@@ -21,9 +21,10 @@ def play_game(screen:pygame.Surface):
     YELLOW = (255, 255, 0)
 
     # --- 遊戲參數 ---
-    player_money = 1000
     last_income_time = time.time()
-    BASE_HP = 200
+    BASE_HP = 100
+    g_var.player_money = 1000
+    g_var.score = 0
 
 
     # --- 圖片路徑 ---
@@ -130,19 +131,18 @@ def play_game(screen:pygame.Surface):
         def update(self, enemies):
             now = time.time()
             # 找目標：先敵人，再塔
-            if not self.target or getattr(self.target,'hp',0)<=0:
-                self.target=None
-                for e in enemies:
-                    distance = e.rect.x - self.rect.x
+            self.target=None
+            for e in enemies:
+                distance = e.rect.x - self.rect.x
+                if 0 < distance <= self.attack_range:
+                    self.target = e
+                    break
+            if self.target is None:
+                for t in towers:
+                    distance = t.rect.x - self.rect.x
                     if 0 < distance <= self.attack_range:
-                        self.target = e
+                        self.target = t
                         break
-                if self.target is None:
-                    for t in towers:
-                        distance = t.rect.x - self.rect.x
-                        if 0 < distance <= self.attack_range:
-                            self.target = t
-                            break
 
             # 攻擊
             if self.target and now - self.last_attack_time >= self.attack_speed:
@@ -182,13 +182,25 @@ def play_game(screen:pygame.Surface):
             pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*ratio, bar_height))
 
     class Enemy(pygame.sprite.Sprite):
-        def __init__(self, x, y, hp=30, attack=3):
+        def __init__(self, x, y,images_walk, images_attack, score_when_killed, hp=30, attack=3):
             super().__init__()
-            self.image = enemy_image
+            self.images_walk = images_walk      # 走路動畫圖片列表
+            self.images_attack = images_attack  # 攻擊動畫圖片列表
+            self.image_index = 0
+            self.image = self.images_walk[self.image_index]
+            self.image=pygame.transform.scale(self.image,(50,50))
+            self.image=pygame.transform.flip(self.image,1,0)
             self.rect = self.image.get_rect(midright=(x,y))
             self.hp = hp
+
+            self.hp_full=hp
             self.attack = attack
             self.last_attack_time = time.time()
+            self.last_frame_time = time.time()
+            self.frame_interval = 0.2  # 每0.2秒換一張圖片//
+            self.state = "walk"  # "walk" 或 "attack”
+            self.score_when_killed = score_when_killed
+            
 
         def update(self, allies):
             now = time.time()
@@ -204,13 +216,33 @@ def play_game(screen:pygame.Surface):
             else:
                 self.rect.x -= 1
             if self.hp <=0:
+                g_var.score += self.score_when_killed
                 self.kill()
+
+            if target:
+                self.state = "attack"
+            else:
+                self.state = "walk"
+            self.update_animation()
+    
 
         def draw_health(self, surface):
             bar_width = self.rect.width
             bar_height = 4
             pygame.draw.rect(surface, RED, (self.rect.x, self.rect.y - 6, bar_width, bar_height))
-            pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*max(self.hp/30,0), bar_height))
+            pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*max(self.hp/self.hp_full,0), bar_height))
+
+        def update_animation(self):
+            now = time.time()
+            if now - self.last_frame_time > self.frame_interval:
+                self.image_index = (self.image_index + 1) % (len(self.images_walk) if self.state=="walk" else len(self.images_attack))
+                self.image = self.images_walk[self.image_index] if self.state=="walk" else self.images_attack[self.image_index]
+                self.image=pygame.transform.scale(self.image,(50,50))  
+                self.image=pygame.transform.flip(self.image,1,0)
+                self.last_frame_time = now
+
+
+
 
     class Tower(pygame.sprite.Sprite):
         def __init__(self,x,y,hp=100):
@@ -223,6 +255,7 @@ def play_game(screen:pygame.Surface):
         def take_damage(self,dmg):
             self.hp -= dmg
             if self.hp <=0:
+                g_var.score += 200
                 self.kill()
 
         def draw_health(self,surface):
@@ -251,20 +284,71 @@ def play_game(screen:pygame.Surface):
         # 每秒加錢
         now = time.time()
         if now - last_income_time >= 1:
-            player_money += 3
+            g_var.player_money += 3
             last_income_time = now
 
         # 事件
         for event in pygame.event.get():
+
             if event.type==pygame.QUIT:
+
                 pygame.quit()
                 sys.exit()
+
             if event.type == enemy_spawn:   #enemy spawning
+
                 for i in range(int(pygame.time.get_ticks()/30000)+1):
-                    enemies.add(Enemy(WIDTH + (random.randint(100,400)), 300))
+                    temp = random.randint(0,3)
+                    if temp==0:
+
+                        enemies.add(Enemy(
+                            x=WIDTH + (random.randint(100,400)), 
+                            y=300,
+                            images_walk = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
+                            images_attack = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
+                            hp=10,
+                            score_when_killed=20
+                        ))
+
+                    elif temp ==1:
+
+                        enemies.add(Enemy(
+                            x=WIDTH + (random.randint(100,400)), 
+                            y=300,
+                            images_walk = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
+                            images_attack = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
+                            hp=25,
+                            score_when_killed=50
+                        ))
+
+                    elif temp ==2:
+
+                        enemies.add(Enemy(
+                            x=WIDTH + (random.randint(100,400)), 
+                            y=300,
+                            images_walk = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
+                            images_attack = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
+                            hp=40,
+                            score_when_killed=80
+                        ))
+
+                    else:
+
+                        enemies.add(Enemy(
+                            x=WIDTH + (random.randint(100,400)), 
+                            y=300,
+                            images_walk = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
+                            images_attack = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
+                            hp=15,
+                            score_when_killed=30
+                        ))
+
             if event.type==pygame.KEYDOWN:
+
                 if event.key==pygame.K_SPACE:
-                    if player_money >= 10:
+
+                    if g_var.player_money >= 10:
+
                         walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
                         melee_attack_images = [pygame.image.load(f"birdani/kiwi_bird_jump_{i}.png") for i in range(1,8)]
                         allies.add(Unit(
@@ -276,12 +360,16 @@ def play_game(screen:pygame.Surface):
                             attack_speed=0.8, 
                             hp=40,
                             range_type="melee", 
-                            move_speed=1.0, 
+                            move_speed=2.0, 
                             attack_range=40
                         ))
-                        player_money -=10
+
+                        g_var.player_money -=10
+
                 elif event.key==pygame.K_m:
-                    if player_money >= 15:
+
+                    if g_var.player_money >= 15:
+
                         walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
                         ranged_attack_image = [pygame.image.load(f"birdani/kiwi_bird_attack_{i}.png") for i in range(1,5)]
                         allies.add(Unit(
@@ -293,9 +381,9 @@ def play_game(screen:pygame.Surface):
                             attack_speed=0.5, 
                             hp=25,
                             range_type="ranged", 
-                            move_speed=1.2, 
+                            move_speed=0.5, 
                             attack_range=150))
-                        player_money -=15
+                        g_var.player_money -=15
 
         # 更新
         allies.update(enemies)
@@ -313,18 +401,22 @@ def play_game(screen:pygame.Surface):
         if BASE_HP <=0:
             screen.fill((200,0,0))
             game_over_text = font.render("Lose", True, WHITE)
-            screen.blit(game_over_text, (WIDTH//2 - 150, HEIGHT//2))
+            game_over_score_text = font.render(f"Your score: {g_var.score}", True, WHITE)
+            screen.blit(game_over_text, (WIDTH//2 , HEIGHT//2))
+            screen.blit(game_over_score_text,(WIDTH//2, HEIGHT//2 +50))
             pygame.display.flip()
-            pygame.time.wait(3000)
+            pygame.time.wait(1000)
             running = False
 
         # 胜利判定
         if len(towers) == 0:
             screen.fill((0,200,0))
             win_text = font.render("Win", True, WHITE)
+            game_over_score_text = font.render(f"Your score: {g_var.score}", True, WHITE)
             screen.blit(win_text, (WIDTH//2 , HEIGHT//2))
+            screen.blit(game_over_score_text,(WIDTH//2, HEIGHT//2 +50))
             pygame.display.flip()
-            pygame.time.wait(3000)
+            pygame.time.wait(1000)
             running = False
 
         # 繪製
@@ -344,14 +436,19 @@ def play_game(screen:pygame.Surface):
         for t in towers:
             t.draw_health(screen)
 
-        # 顯示金錢和基地HP
-        money_text = font.render(f"Money: {player_money}", True, YELLOW)
+        # 顯示金錢
+        money_text = font.render(f"Money: {g_var.player_money}", True, YELLOW)
         screen.blit(money_text, (10,10))
+
+        # draw base hp box
         pygame.draw.rect(screen, RED, (WIDTH-220, 20, 200, 16))
-        pygame.draw.rect(screen, GREEN, (WIDTH-220, 20, 200*(BASE_HP/200), 16))
+        pygame.draw.rect(screen, GREEN, (WIDTH-220, 20, 200*(BASE_HP/100), 16))
         screen.blit(font.render("base", True, YELLOW), (WIDTH-270,20))
+
+        # draw score text
+        score_text = font.render(f"Score: {g_var.score}", True, YELLOW)
+        screen.blit(score_text, (10,30))
 
         pygame.display.flip()
 
-    # pygame.quit()
     return

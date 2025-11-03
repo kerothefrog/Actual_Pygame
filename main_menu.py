@@ -1,6 +1,5 @@
 import pygame
 from button import Interactive_button
-from gameplay import play_game
 
 class MainMenu:
     def __init__(self, screen:pygame.Surface):
@@ -41,7 +40,6 @@ class MainMenu:
         if self.back_button.sprite.is_pressed():
             return 'start menu'
         if self.play_demo_button.sprite.is_pressed():
-            play_game(screen=self.screen)
-            return 'main_menu'
+            return 'gameplay'
         else:
             return 'main_menu'
