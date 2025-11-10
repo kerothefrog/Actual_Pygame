@@ -5,12 +5,12 @@ class Settings:
     def __init__(self, screen:pygame.Surface):
         self.screen = screen
         self.image = pygame.image.load('assets/setting_menu_bg.jpg').convert()
-        self.image = pygame.transform.scale(self.image, (1200,600))
+        self.image = pygame.transform.scale(self.image, (900,400))
         self.rect = self.image.get_rect(topleft=(0,0))
 
         self.back_button = pygame.sprite.GroupSingle(Interactive_button(
             location=(100,100),
-            font=pygame.font.Font(None,50),
+            font=pygame.font.Font(None,40),
             text='Back',
             text_color="#FFFFFF",
             color="#5D5D5D",
@@ -18,8 +18,8 @@ class Settings:
         ))
 
         self.credits_button = pygame.sprite.GroupSingle(Interactive_button(
-            location=(1000,500),
-            font=pygame.font.Font(None,50),
+            location=(800,300),
+            font=pygame.font.Font(None,40),
             text='Credits',
             text_color="#FFFFFF",
             color="#5D5D5D",

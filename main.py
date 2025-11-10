@@ -3,6 +3,7 @@ from starting_menu import StartMenu
 from settings import Settings
 from main_menu import MainMenu
 from credits import Credits
+from gameplay import play_game
 
 def get_class(state:str):
     if state == 'start menu':
@@ -13,11 +14,15 @@ def get_class(state:str):
         return main_menu
     elif state == 'credits':
         return credits
+    elif state == 'gameplay':
+        play_game(screen=screen)
+        state = 'main_menu'
+        return main_menu
     else:
         raise ValueError('Invalid state')
 
 pygame.init()
-screen = pygame.display.set_mode((1200, 600))
+screen = pygame.display.set_mode((900, 400))
 pygame.display.set_caption("31426")
 clock = pygame.time.Clock()
 

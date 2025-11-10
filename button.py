@@ -3,8 +3,10 @@ import pygame, sys
 
 class Interactive_button(pygame.sprite.Sprite):
     def __init__(self,location:tuple,
-                font:pygame.font.Font,
+                font:pygame.font.SysFont,
                 text='',
+                button_surf = None,
+                hover_button_surf = None,
                 text_color="#FFFFFF",
                 color="#0091FF", 
                 hover_color="#03FECC",
@@ -35,12 +37,23 @@ class Interactive_button(pygame.sprite.Sprite):
 
 
         self.text_surf = self.setText()
-        self.button_surf = pygame.Surface(self.size)
-        self.hover_button_surf = pygame.Surface((self.size[0]+20,self.size[1]+20))
-        self.button_rect = self.button_surf.fill(self.color)
-        self.hover_button_rect = self.hover_button_surf.fill(self.hover_color)
-        self.button_rect.center = self.location
-        self.hover_button_rect.center = self.location
+
+        #surface
+        if button_surf == None:
+            self.button_surf = pygame.Surface(self.size)
+            self.button_rect = self.button_surf.fill(self.color)
+            self.button_rect.center = self.location
+        else:
+            self.button_surf = button_surf
+            self.button_rect = self.button_surf.get_rect(center=self.location)
+
+        if hover_button_surf == None:
+            self.hover_button_surf = pygame.Surface((self.size[0]+20,self.size[1]+20))
+            self.hover_button_rect = self.hover_button_surf.fill(self.hover_color)
+            self.hover_button_rect.center = self.location
+        else:
+            self.hover_button_surf = hover_button_surf
+            self.hover_button_rect = self.hover_button_surf.get_rect(center=self.location)
 
         #actual surf and rect
         self.image = self.button_surf
