@@ -10,6 +10,7 @@ def play_game(screen:pygame.Surface):
     # pygame.display.set_caption("塔防簡單版")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 28)
+    font_bigger = pygame.font.SysFont(None,50)
 
     # --- 顏色 ---
     WHITE = (255, 255, 255)
@@ -46,7 +47,7 @@ def play_game(screen:pygame.Surface):
     enemy_image = load_image(ENEMY_IMAGE_PATH, (30,30), RED)
 
     # --- 背景 ---
-    background = pygame.image.load("misks/Void.png").convert()
+    background = pygame.image.load("misks/background.png").convert()
     background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
     # --- 群組 ---
@@ -55,6 +56,7 @@ def play_game(screen:pygame.Surface):
     arrows = pygame.sprite.Group()
     towers = pygame.sprite.Group()
     hit_effects = pygame.sprite.Group()
+    character_select_boxes = pygame.sprite.Group()
 
     # ---------- 類別 ----------
     class HitEffect(pygame.sprite.Sprite):
@@ -98,7 +100,7 @@ def play_game(screen:pygame.Surface):
             surface.blit(self.image, self.rect)
 
     class Unit(pygame.sprite.Sprite):
-        def __init__(self, x, y, images_walk, images_attack, attack, attack_speed, hp, range_type, move_speed=1.0, attack_range=None):
+        def __init__(self, x, y, images_walk, images_attack, attack, attack_speed, hp, range_type, move_speed=1.0, attack_range=None, frame_interval=0.2):
             super().__init__()
             self.images_walk = images_walk      # 走路動畫圖片列表
             self.images_attack = images_attack  # 攻擊動畫圖片列表
@@ -116,7 +118,7 @@ def play_game(screen:pygame.Surface):
             self.speed = move_speed
             self.attack_range = attack_range if attack_range else (40 if range_type=="melee" else 150)
             self.last_frame_time = time.time()
-            self.frame_interval = 0.2  # 每0.2秒換一張圖片
+            self.frame_interval = frame_interval  # 每0.2秒換一張圖片
             self.state = "walk"  # "walk" 或 "attack”
 
         def update_animation(self):
@@ -182,7 +184,7 @@ def play_game(screen:pygame.Surface):
             pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*ratio, bar_height))
 
     class Enemy(pygame.sprite.Sprite):
-        def __init__(self, x, y,images_walk, images_attack, score_when_killed, hp=30, attack=3):
+        def __init__(self, x, y,images_walk, images_attack, score_when_killed, hp=30, attack=3, frame_interval=0.2):
             super().__init__()
             self.images_walk = images_walk      # 走路動畫圖片列表
             self.images_attack = images_attack  # 攻擊動畫圖片列表
@@ -197,7 +199,7 @@ def play_game(screen:pygame.Surface):
             self.attack = attack
             self.last_attack_time = time.time()
             self.last_frame_time = time.time()
-            self.frame_interval = 0.2  # 每0.2秒換一張圖片//
+            self.frame_interval = frame_interval  # 每0.2秒換一張圖片//
             self.state = "walk"  # "walk" 或 "attack”
             self.score_when_killed = score_when_killed
             
@@ -263,6 +265,41 @@ def play_game(screen:pygame.Surface):
             pygame.draw.rect(surface, RED, (self.rect.x, self.rect.y - 8, bar_width, bar_height))
             pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 8, bar_width*max(self.hp/100,0), bar_height))
 
+    class Character_select_box(pygame.sprite.Sprite):
+        def __init__(self, default_image:str, hover_image:str, center_location:tuple, size:tuple, spawning_event:int):
+            super().__init__()
+            self.location = center_location
+            self.size = size
+            self.default_image = pygame.image.load(default_image).convert_alpha()
+            self.default_image = pygame.transform.scale(self.default_image, self.size)
+            self.hover_image = pygame.image.load(hover_image).convert_alpha()
+            self.hover_image = pygame.transform.scale(self.hover_image, self.size)
+
+            self.spawning_event = pygame.event.Event(spawning_event)
+            
+
+            self.image = None
+            self.rect = None
+
+            self.set_image_and_rect()
+
+        def set_image_and_rect(self):
+            self.image = self.default_image
+            self.rect = self.image.get_rect(center=self.location)
+
+        def is_hovered(self):
+            return pygame.Rect.collidepoint(self.rect, pygame.mouse.get_pos())
+        
+        def is_clicked(self):
+            return pygame.Rect.collidepoint(self.rect, pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]
+        
+        def update(self):
+            if self.is_hovered():
+                self.image = self.hover_image
+            else:
+                self.image = self.default_image
+
+
     # ---------- 初始敵人與塔 ----------
     # for i in range(3):
     #     enemies.add(Enemy(WIDTH - i*100, 300))
@@ -270,6 +307,32 @@ def play_game(screen:pygame.Surface):
     towers.add(Tower(600, 300 + 20))
     towers.add(Tower(700, 300 + 20))
 
+    # ---character select boxes---
+    warrior_spawn = pygame.event.custom_type()
+    archer_spawn = pygame.event.custom_type()
+    kiwi_boss_spawn = pygame.event.custom_type()
+
+    character_select_boxes.add(Character_select_box(
+        default_image="UI/archer_select_box_1.png",
+        hover_image="UI/archer_select_box_2.png",
+        center_location=(400,80),
+        size=(80,80),
+        spawning_event=archer_spawn
+    ))
+    character_select_boxes.add(Character_select_box(
+        default_image="UI/warrior_select_box_1.png",
+        hover_image="UI/warrior_select_box_2.png",
+        center_location=(500,80),
+        size=(80,80),
+        spawning_event=warrior_spawn
+    ))
+    character_select_boxes.add(Character_select_box(
+        default_image="UI/kiwi_boss_select_1.png",
+        hover_image="UI/kiwi_boss_select_2.png",
+        center_location=(600,80),
+        size=(80,80),
+        spawning_event=kiwi_boss_spawn
+    ))
 
     # ---enemy spawning timer---
     enemy_spawn = pygame.event.custom_type()
@@ -280,6 +343,7 @@ def play_game(screen:pygame.Surface):
     while running:
         clock.tick(60)
         screen.blit(background, (0, 0))
+        mouse_button_down_event = False
 
         # 每秒加錢
         now = time.time()
@@ -291,12 +355,10 @@ def play_game(screen:pygame.Surface):
         for event in pygame.event.get():
 
             if event.type==pygame.QUIT:
-
                 pygame.quit()
                 sys.exit()
 
             if event.type == enemy_spawn:   #enemy spawning
-
                 for i in range(int(pygame.time.get_ticks()/30000)+1):
                     temp = random.randint(0,3)
                     if temp==0:
@@ -344,52 +406,73 @@ def play_game(screen:pygame.Surface):
                         ))
 
             if event.type==pygame.KEYDOWN:
+                pass
 
-                if event.key==pygame.K_SPACE:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_button_down_event = True
 
-                    if g_var.player_money >= 10:
+            #spawning_warriors
+            if event.type == warrior_spawn: 
+                if g_var.player_money >= 10:
+                    walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
+                    attack_images = [pygame.image.load(f"birdani/kiwi_bird_jump_{i}.png") for i in range(1,8)]
+                    allies.add(Unit(
+                        x=50,
+                        y=300,
+                        images_walk=walk_images,
+                        images_attack=attack_images,
+                        attack=5, 
+                        attack_speed=0.8, 
+                        hp=40,
+                        range_type="melee", 
+                        move_speed=2.0, 
+                        attack_range=40
+                    ))
+                    g_var.player_money -=10
 
-                        walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                        melee_attack_images = [pygame.image.load(f"birdani/kiwi_bird_jump_{i}.png") for i in range(1,8)]
-                        allies.add(Unit(
-                            x=50,
-                            y=300,
-                            images_walk=walk_images,
-                            images_attack=melee_attack_images,
-                            attack=5, 
-                            attack_speed=0.8, 
-                            hp=40,
-                            range_type="melee", 
-                            move_speed=2.0, 
-                            attack_range=40
-                        ))
+            if event.type == archer_spawn:
+                if g_var.player_money >= 15:
+                    walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
+                    attack_images = [pygame.image.load(f"birdani/kiwi_bird_attack_{i}.png") for i in range(1,5)]
+                    allies.add(Unit(
+                        x=50, 
+                        y=300, 
+                        images_walk= walk_images,
+                        images_attack= attack_images,
+                        attack=3, 
+                        attack_speed=0.5, 
+                        hp=25,
+                        range_type="ranged", 
+                        move_speed=1, 
+                        attack_range=150))
+                    g_var.player_money -=15
 
-                        g_var.player_money -=10
-
-                elif event.key==pygame.K_m:
-
-                    if g_var.player_money >= 15:
-
-                        walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                        ranged_attack_image = [pygame.image.load(f"birdani/kiwi_bird_attack_{i}.png") for i in range(1,5)]
-                        allies.add(Unit(
-                            x=50, 
-                            y=300, 
-                            images_walk= walk_images,
-                            images_attack= ranged_attack_image,
-                            attack=3, 
-                            attack_speed=0.5, 
-                            hp=25,
-                            range_type="ranged", 
-                            move_speed=0.5, 
-                            attack_range=150))
-                        g_var.player_money -=15
+            if event.type == kiwi_boss_spawn:
+                if g_var.player_money >= 40:
+                    walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
+                    attack_images = [pygame.image.load(f"birdani/kiwi_boss_{i}.png") for i in range(1,11)]
+                    allies.add(Unit(
+                        x=50, 
+                        y=300, 
+                        images_walk= walk_images,
+                        images_attack= attack_images,
+                        attack=10, 
+                        attack_speed=1, 
+                        hp=50,
+                        range_type="melee", 
+                        move_speed=1, 
+                        attack_range=40,
+                        frame_interval=0.1))
+                    g_var.player_money -=40
 
         # 更新
         allies.update(enemies)
         enemies.update(allies)
         arrows.update()
         hit_effects.update()
+        character_select_boxes.update()
+        for character in character_select_boxes:
+            if character.is_clicked() and mouse_button_down_event: pygame.event.post(character.spawning_event)
 
         # 檢查敵人攻擊基地
         for e in enemies:
@@ -400,10 +483,10 @@ def play_game(screen:pygame.Surface):
         # 遊戲結束判定
         if BASE_HP <=0:
             screen.fill((200,0,0))
-            game_over_text = font.render("Lose", True, WHITE)
-            game_over_score_text = font.render(f"Your score: {g_var.score}", True, WHITE)
-            screen.blit(game_over_text, (WIDTH//2 , HEIGHT//2))
-            screen.blit(game_over_score_text,(WIDTH//2, HEIGHT//2 +50))
+            game_over_text = font_bigger.render("Lose", True, WHITE)
+            game_over_score_text = font_bigger.render(f"Your score: {g_var.score}", True, WHITE)
+            screen.blit(game_over_text, (150,100))
+            screen.blit(game_over_score_text,(150,150))
             pygame.display.flip()
             pygame.time.wait(1000)
             running = False
@@ -411,10 +494,10 @@ def play_game(screen:pygame.Surface):
         # 胜利判定
         if len(towers) == 0:
             screen.fill((0,200,0))
-            win_text = font.render("Win", True, WHITE)
-            game_over_score_text = font.render(f"Your score: {g_var.score}", True, WHITE)
-            screen.blit(win_text, (WIDTH//2 , HEIGHT//2))
-            screen.blit(game_over_score_text,(WIDTH//2, HEIGHT//2 +50))
+            win_text = font_bigger.render("Win", True, WHITE)
+            game_over_score_text = font_bigger.render(f"Your score: {g_var.score}", True, WHITE)
+            screen.blit(win_text, (150,100))
+            screen.blit(game_over_score_text,(150,150))
             pygame.display.flip()
             pygame.time.wait(1000)
             running = False
@@ -423,10 +506,12 @@ def play_game(screen:pygame.Surface):
         towers.draw(screen)
         allies.draw(screen)
         enemies.draw(screen)
+        character_select_boxes.draw(screen)
         for arrow in arrows:
             arrow.draw(screen)
         for effect in hit_effects:
             effect.draw(screen)
+        
 
         # 顯示血條
         for ally in allies:

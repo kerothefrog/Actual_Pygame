@@ -9,8 +9,8 @@ class MainMenu:
         self.rect = self.image.get_rect(topleft = (0,0))
 
         self.back_button = pygame.sprite.GroupSingle(Interactive_button(
-            location=(800,100),
-            font=pygame.font.Font(None,40),
+            location=(800,300),
+            font=pygame.font.SysFont(None,40),
             text='Back',
             text_color="#FFFFFF",
             color="#5D5D5D",
@@ -18,12 +18,71 @@ class MainMenu:
         ))
         
         self.play_demo_button = pygame.sprite.GroupSingle(Interactive_button(
-            location=(450,200),
-            font = pygame.font.Font(None,40),
+            location=(450,350),
+            font = pygame.font.SysFont(None,40),
             text='play demo level',
             text_color="#FFFFFF",
             color="#5D5D5D",
             hover_color="#A7A7A7"
+        ))
+
+        #flags
+        flag_surf = pygame.image.load("UI/flag.png").convert_alpha()
+        flag_surf = pygame.transform.scale(flag_surf,(50,50))
+        yellow_glow_surf = pygame.image.load("UI/yellow.png").convert_alpha()
+        yellow_glow_surf = pygame.transform.scale(yellow_glow_surf,(90,90))
+        yellow_glow_surf.blit(flag_surf,(20,20))
+
+        self.level_1_button = pygame.sprite.GroupSingle(Interactive_button(
+            location=(80,95),
+            font=pygame.font.SysFont(None,40),
+            text="",
+            button_surf=flag_surf,
+            hover_button_surf=yellow_glow_surf,
+            size=(90,90)
+        ))
+
+        self.level_2_button = pygame.sprite.GroupSingle(Interactive_button(
+            location=(280,220),
+            font=pygame.font.SysFont(None,40),
+            text="",
+            button_surf=flag_surf,
+            hover_button_surf=yellow_glow_surf,
+            size=(90,90)
+        ))
+
+        self.level_3_button = pygame.sprite.GroupSingle(Interactive_button(
+            location=(460,95),
+            font=pygame.font.SysFont(None,40),
+            text="",
+            button_surf=flag_surf,
+            hover_button_surf=yellow_glow_surf,
+            size=(90,90)
+        ))
+
+        self.level_4_button = pygame.sprite.GroupSingle(Interactive_button(
+            location=(540,260),
+            font=pygame.font.SysFont(None,40),
+            text="",
+            button_surf=flag_surf,
+            hover_button_surf=yellow_glow_surf,
+            size=(90,90)
+        ))
+
+        #boss level
+        skele_surf = pygame.image.load("UI/skeleton.png").convert_alpha()
+        skele_surf = pygame.transform.scale(skele_surf,(50,50))
+        yellow_glow_surf = pygame.image.load("UI/yellow.png").convert_alpha()
+        yellow_glow_surf = pygame.transform.scale(yellow_glow_surf,(90,90))
+        yellow_glow_surf.blit(skele_surf,(20,20))
+
+        self.boss_level_button = pygame.sprite.GroupSingle(Interactive_button(
+            location=(740,140),
+            font=pygame.font.SysFont(None,40),
+            text="",
+            button_surf=skele_surf,
+            hover_button_surf=yellow_glow_surf,
+            size=(90,90)
         ))
 
     def draw(self):
@@ -33,6 +92,19 @@ class MainMenu:
         self.play_demo_button.draw(self.screen)
         self.back_button.update(self.screen)
         self.play_demo_button.update(self.screen)
+
+        self.level_1_button.draw(self.screen)
+        self.level_1_button.update(self.screen)
+        self.level_2_button.draw(self.screen)
+        self.level_2_button.update(self.screen)
+        self.level_3_button.draw(self.screen)
+        self.level_3_button.update(self.screen)
+        self.level_4_button.draw(self.screen)
+        self.level_4_button.update(self.screen)
+
+        self.boss_level_button.draw(self.screen)
+        self.boss_level_button.update(self.screen)
+
 
         return 'main_menu'
 
