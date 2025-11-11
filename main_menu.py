@@ -112,6 +112,18 @@ class MainMenu:
         if self.back_button.sprite.is_pressed():
             return 'start menu'
         if self.play_demo_button.sprite.is_pressed():
-            return 'gameplay'
+            return 'gameplay1'
+        
+        if self.level_1_button.sprite.is_pressed():
+            return 'gameplay1'
+        if self.level_2_button.sprite.is_pressed():
+            return 'gameplay2'
+        if self.level_3_button.sprite.is_pressed():
+            return 'gameplay3'
+        if self.level_4_button.sprite.is_pressed():
+            return 'gameplay4'
+        
+        if self.boss_level_button.sprite.is_pressed():
+            return 'gameplay5'
         else:
             return 'main_menu'

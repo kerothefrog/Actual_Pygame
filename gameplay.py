@@ -1,9 +1,27 @@
-import pygame, time, os, random, sys
+import pygame, time, os, random, sys, math
 import g_var
 
+def spawning_timer(level_state:str, time):
+    if level_state == 'gameplay1':
+        temp = int(time/10 + 1)
+        if temp > 4:
+            return 4
+        else:
+            return temp
+    elif level_state == 'gameplay2':
+        return int(time/10 + 1)
+    elif level_state == 'gameplay3':
+        return int(math.log10(time)+3)
+    elif level_state == 'gameplay4':
+        if time < 12.4:
+            return 0
+        else:
+            return int(time/5)
+    elif level_state == 'gameplay5':
+        return int(math.pow(time/5,1.1))
 
 # --- 初始化 ---
-def play_game(screen:pygame.Surface):
+def play_game(screen:pygame.Surface, level_state:str):
     # pygame.init()
     WIDTH, HEIGHT = 900, 400
     # screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -11,6 +29,7 @@ def play_game(screen:pygame.Surface):
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 28)
     font_bigger = pygame.font.SysFont(None,50)
+    game_started_time = time.time()
 
     # --- 顏色 ---
     WHITE = (255, 255, 255)
@@ -24,7 +43,7 @@ def play_game(screen:pygame.Surface):
     # --- 遊戲參數 ---
     last_income_time = time.time()
     BASE_HP = 100
-    g_var.player_money = 1000
+    g_var.player_money = 0
     g_var.score = 0
 
 
@@ -112,6 +131,7 @@ def play_game(screen:pygame.Surface):
             self.attack = attack
             self.attack_speed = attack_speed
             self.hp = hp
+            self.full_hp = hp
             self.range_type = range_type
             self.last_attack_time = time.time()
             self.target = None
@@ -179,12 +199,12 @@ def play_game(screen:pygame.Surface):
         def draw_health(self, surface):
             bar_width = self.rect.width
             bar_height = 4
-            ratio = max(self.hp / 40, 0) if self.range_type=="melee" else max(self.hp / 25, 0)
+            ratio = max(self.hp / self.full_hp, 0)
             pygame.draw.rect(surface, RED, (self.rect.x, self.rect.y - 6, bar_width, bar_height))
             pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*ratio, bar_height))
 
     class Enemy(pygame.sprite.Sprite):
-        def __init__(self, x, y,images_walk, images_attack, score_when_killed, hp=30, attack=3, frame_interval=0.2):
+        def __init__(self, x, y,images_walk, images_attack, score_when_killed, money_when_killed, hp=30, attack=3, frame_interval=0.2):
             super().__init__()
             self.images_walk = images_walk      # 走路動畫圖片列表
             self.images_attack = images_attack  # 攻擊動畫圖片列表
@@ -202,6 +222,7 @@ def play_game(screen:pygame.Surface):
             self.frame_interval = frame_interval  # 每0.2秒換一張圖片//
             self.state = "walk"  # "walk" 或 "attack”
             self.score_when_killed = score_when_killed
+            self.money_when_killed = money_when_killed
             
 
         def update(self, allies):
@@ -219,6 +240,7 @@ def play_game(screen:pygame.Surface):
                 self.rect.x -= 1
             if self.hp <=0:
                 g_var.score += self.score_when_killed
+                g_var.player_money += self.money_when_killed
                 self.kill()
 
             if target:
@@ -359,50 +381,54 @@ def play_game(screen:pygame.Surface):
                 sys.exit()
 
             if event.type == enemy_spawn:   #enemy spawning
-                for i in range(int(pygame.time.get_ticks()/30000)+1):
+                for i in range(spawning_timer(level_state=level_state, time=now-game_started_time)):
                     temp = random.randint(0,3)
                     if temp==0:
 
                         enemies.add(Enemy(
-                            x=WIDTH + (random.randint(100,400)), 
+                            x=WIDTH + (random.randint(50,300)), 
                             y=300,
                             images_walk = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
                             images_attack = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
                             hp=10,
-                            score_when_killed=20
+                            score_when_killed=20,
+                            money_when_killed=1
                         ))
 
                     elif temp ==1:
 
                         enemies.add(Enemy(
-                            x=WIDTH + (random.randint(100,400)), 
+                            x=WIDTH + (random.randint(50,300)), 
                             y=300,
                             images_walk = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
                             images_attack = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
                             hp=25,
-                            score_when_killed=50
+                            score_when_killed=50,
+                            money_when_killed=3
                         ))
 
                     elif temp ==2:
 
                         enemies.add(Enemy(
-                            x=WIDTH + (random.randint(100,400)), 
+                            x=WIDTH + (random.randint(50,300)), 
                             y=300,
                             images_walk = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
                             images_attack = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
                             hp=40,
-                            score_when_killed=80
+                            score_when_killed=80,
+                            money_when_killed=3
                         ))
 
                     else:
 
                         enemies.add(Enemy(
-                            x=WIDTH + (random.randint(100,400)), 
+                            x=WIDTH + (random.randint(50,300)), 
                             y=300,
                             images_walk = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
                             images_attack = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
                             hp=15,
-                            score_when_killed=30
+                            score_when_killed=30,
+                            money_when_killed=1
                         ))
 
             if event.type==pygame.KEYDOWN:
@@ -439,7 +465,7 @@ def play_game(screen:pygame.Surface):
                         y=300, 
                         images_walk= walk_images,
                         images_attack= attack_images,
-                        attack=3, 
+                        attack=8, 
                         attack_speed=0.5, 
                         hp=25,
                         range_type="ranged", 
@@ -456,9 +482,9 @@ def play_game(screen:pygame.Surface):
                         y=300, 
                         images_walk= walk_images,
                         images_attack= attack_images,
-                        attack=10, 
-                        attack_speed=1, 
-                        hp=50,
+                        attack=30, 
+                        attack_speed=0.5, 
+                        hp=150,
                         range_type="melee", 
                         move_speed=1, 
                         attack_range=40,

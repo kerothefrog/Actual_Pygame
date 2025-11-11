@@ -14,8 +14,25 @@ def get_class(state:str):
         return main_menu
     elif state == 'credits':
         return credits
-    elif state == 'gameplay':
-        play_game(screen=screen)
+    
+    elif state == 'gameplay1':
+        play_game(screen=screen, level_state='gameplay1')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay2':
+        play_game(screen=screen, level_state='gameplay2')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay3':
+        play_game(screen=screen, level_state='gameplay3')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay4':
+        play_game(screen=screen, level_state='gameplay4')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay5':
+        play_game(screen=screen, level_state='gameplay5')
         state = 'main_menu'
         return main_menu
     else:
