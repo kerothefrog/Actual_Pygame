@@ -1,6 +1,6 @@
 import pygame, sys
 from starting_menu import StartMenu
-from settings import Settings
+from characters_menu import Characters_menu
 from main_menu import MainMenu
 from credits import Credits
 from gameplay import play_game
@@ -8,8 +8,8 @@ from gameplay import play_game
 def get_class(state:str):
     if state == 'start menu':
         return start_menu
-    elif state == 'settings':
-        return settings
+    elif state == 'characters_menu':
+        return characters_menu
     elif state == 'main_menu':
         return main_menu
     elif state == 'credits':
@@ -45,7 +45,7 @@ clock = pygame.time.Clock()
 
 curr_state = 'start menu'
 start_menu = StartMenu(screen)
-settings = Settings(screen)
+characters_menu = Characters_menu(screen)
 main_menu = MainMenu(screen)
 credits = Credits(screen)
 
