@@ -10,35 +10,36 @@ class StartMenu:
         self.rect = self.image.get_rect(topleft=(0,0))
 
         play_button = pygame.image.load("UI/play_button.png").convert_alpha()
-        play_button = pygame.transform.scale(play_button,(120,60))
+        play_button = pygame.transform.scale_by(play_button,0.5)
 
         self.play_button = pygame.sprite.GroupSingle(Interactive_button(
             location=(200,100),
             font=pygame.font.Font(None,40),
             text='',
-            text_color="#FFFFFF",
-            color="#5D5D5D",
-            hover_color="#A7A7A7",
             button_surf=play_button,
             hover_button_surf=play_button
         ))
 
+        quit_button = pygame.image.load("UI/quit_button.png").convert_alpha()
+        quit_button = pygame.transform.scale_by(quit_button,0.5)
+
         self.quit_button = pygame.sprite.GroupSingle(Interactive_button(
             location=(200,200),
             font=pygame.font.Font(None,40),
-            text='Quit',
-            text_color="#FFFFFF",
-            color="#5D5D5D",
-            hover_color="#A7A7A7"
+            text='',
+            button_surf=quit_button,
+            hover_button_surf=quit_button
         ))
+
+        character_button = pygame.image.load("UI/character_button.png").convert_alpha()
+        character_button = pygame.transform.scale_by(character_button,0.5)
 
         self.character_menu = pygame.sprite.GroupSingle(Interactive_button(
             location=(200,300),
             font=pygame.font.Font(None,40),
-            text='Characters',
-            text_color="#FFFFFF",
-            color="#5D5D5D",
-            hover_color="#A7A7A7"
+            text='',
+            button_surf=character_button,
+            hover_button_surf=character_button
         ))
 
     def draw(self):

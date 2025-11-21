@@ -1,17 +1,28 @@
 import pygame, time, os, random, sys, math
 import g_var
 
-def spawning_timer(level_state:str, time):
+def spawning_timer(enemy_group:pygame.sprite.Group, level_state:str, time):
     if level_state == 'gameplay1':
         temp = int(time/10 + 1)
-        if temp > 4:
-            return 4
+        if len(enemy_group)>10: return 0
+        if temp > 3:
+            return 3
         else:
             return temp
     elif level_state == 'gameplay2':
-        return int(time/10 + 1)
+        temp = int(time/10 + 1)
+        if len(enemy_group)>15: return 0
+        if temp > 5:
+            return 5
+        else:
+            return temp
     elif level_state == 'gameplay3':
-        return int(math.log10(time)+3)
+        temp = int(math.log10(time)+3)
+        if len(enemy_group)>25 :return 0
+        if temp > 7:
+            return 7 
+        else:
+            return temp
     elif level_state == 'gameplay4':
         if time < 12.4:
             return 0
@@ -59,11 +70,10 @@ def play_game(screen:pygame.Surface, level_state:str):
         else:
             surf = pygame.Surface(size)
             surf.fill(color)
-            return surf
 
-    melee_image = load_image(MELEE_IMAGE_PATH, (30,30), BLUE)
-    range_image = load_image(RANGE_IMAGE_PATH, (30,30), GREEN)
-    enemy_image = load_image(ENEMY_IMAGE_PATH, (30,30), RED)
+    # melee_image = load_image(MELEE_IMAGE_PATH, (30,30), BLUE)
+    # range_image = load_image(RANGE_IMAGE_PATH, (30,30), GREEN)
+    # enemy_image = load_image(ENEMY_IMAGE_PATH, (30,30), RED)
 
     # --- 背景 ---
     background = pygame.image.load("misks/background.png").convert()
@@ -254,7 +264,7 @@ def play_game(screen:pygame.Surface, level_state:str):
             bar_width = self.rect.width
             bar_height = 4
             pygame.draw.rect(surface, RED, (self.rect.x, self.rect.y - 6, bar_width, bar_height))
-            pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*max(self.hp/self.hp_full,0), bar_height))
+            pygame.draw.rect(surface, "#8EFF8EB2", (self.rect.x, self.rect.y - 6, bar_width*max(self.hp/self.hp_full,0), bar_height))
 
         def update_animation(self):
             now = time.time()
@@ -381,7 +391,7 @@ def play_game(screen:pygame.Surface, level_state:str):
                 sys.exit()
 
             if event.type == enemy_spawn:   #enemy spawning
-                for i in range(spawning_timer(level_state=level_state, time=now-game_started_time)):
+                for i in range(spawning_timer(enemy_group=enemies, level_state=level_state, time=now-game_started_time)):
                     temp = random.randint(0,3)
                     if temp==0:
 

@@ -23,9 +23,9 @@ class Characters_info(Interactive_button):
         super().update(screen)
 
         if super().is_hovered():
-            font = pygame.font.SysFont(None,30)
+            font = pygame.font.SysFont('impact',22)
             for i in range(len(self.info_text)):
-                temp_surf = font.render(self.info_text[i],False,"#000000")
+                temp_surf = font.render(self.info_text[i],False,"#616161FF")
                 temp_rect = temp_surf.get_rect(topleft=(self.info_text_location[0],self.info_text_location[1]+i*20))
                 screen.blit(temp_surf, temp_rect)
 
@@ -71,7 +71,7 @@ class Characters_menu:
         #characters
         self.characters = pygame.sprite.Group()
 
-        yellow_glow_surf = pygame.image.load("UI/yellow.png").convert_alpha()
+        yellow_glow_surf = pygame.image.load("UI/yellow2.png").convert_alpha()
         self.yellow_glow_surf = pygame.transform.scale(yellow_glow_surf,(140,140))
         arrow_surf = pygame.image.load("UI/arrow.png").convert_alpha()
         self.arrow_surf = pygame.transform.scale(arrow_surf,(28,40))
@@ -83,7 +83,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["attack=5", "attack_speed=0.8", "hp=40", "move_speed=2.0", "attack_range=40"]
+            info_text=["attack=5", "attack speed=0.8", "hp=40", "move speed=2.0", "attack range=40"]
         ))
 
         temp = self.set_character_surf("birdani/kiwi_bird_attack_1.png")
@@ -93,7 +93,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["attack=8", "attack_speed=0.5", "hp=25", "move_speed=1.0", "attack_range=150"]
+            info_text=["attack=8", "attack speed=0.5", "hp=25", "move speed=1.0", "attack range=150"]
         ))
 
         temp = self.set_character_surf("birdani/kiwi_boss_1.png")
@@ -103,7 +103,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["attack=30", "attack_speed=0.5", "hp=150", "move_speed=1.0", "attack_range=40"]
+            info_text=["attack=30", "attack speed=0.5", "hp=150", "move speed=1.0", "attack range=40"]
         ))
 
         temp = self.set_character_surf("mushrooms/mushroom_walk_1.png")
@@ -113,7 +113,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["hp=10", "score_when_killed=20", "money_when_killed=1"]
+            info_text=["hp=10", "score when killed=20", "money when killed=1"]
         ))
 
         temp = self.set_character_surf("mushrooms/mushroom2_walk_1.png")
@@ -123,7 +123,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["hp=25", "score_when_killed=50", "money_when_killed=3"]
+            info_text=["hp=25", "score when killed=50", "money when killed=3"]
         ))
 
         temp = self.set_character_surf("mushrooms/mushroom3_walk_1.png")
@@ -133,7 +133,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["hp=40", "score_when_killed=80", "money_when_killed=3"]
+            info_text=["hp=40", "score when killed=80", "money when killed=3"]
         ))
 
         temp = self.set_character_surf("mushrooms/mushroom4_walk_1.png")
@@ -143,7 +143,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["hp=15", "score_when_killed=30", "money_when_killed=1"]
+            info_text=["hp=15", "score when killed=30", "money when killed=1"]
         ))
 
 

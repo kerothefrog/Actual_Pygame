@@ -42,6 +42,9 @@ pygame.init()
 screen = pygame.display.set_mode((900, 400))
 pygame.display.set_caption("31426")
 clock = pygame.time.Clock()
+# bg_music = pygame.mixer.Sound("audio/What_Is_This_Diddy_Blud_Doing.mp3")
+# bg_music.set_volume(0.3)
+# bg_music.play(loops=-1)
 
 curr_state = 'start menu'
 start_menu = StartMenu(screen)
