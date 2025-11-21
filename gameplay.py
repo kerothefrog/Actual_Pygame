@@ -1,5 +1,6 @@
 import pygame, time, os, random, sys, math
 import g_var
+from button import Interactive_button
 
 def spawning_timer(enemy_group:pygame.sprite.Group, level_state:str, time):
     if level_state == 'gameplay1':
@@ -30,6 +31,15 @@ def spawning_timer(enemy_group:pygame.sprite.Group, level_state:str, time):
             return int(time/5)
     elif level_state == 'gameplay5':
         return int(math.pow(time/5,1.1))
+    
+def load_image(path, size=(30,30), color=(0,0,255)):
+        if os.path.exists(path):
+            img = pygame.image.load(path).convert_alpha()
+            return pygame.transform.scale(img, size)
+        else:
+            surf = pygame.Surface(size)
+            surf.fill(color)
+
 
 # --- 初始化 ---
 def play_game(screen:pygame.Surface, level_state:str):
@@ -54,22 +64,17 @@ def play_game(screen:pygame.Surface, level_state:str):
     # --- 遊戲參數 ---
     last_income_time = time.time()
     BASE_HP = 100
+    g_var.paused = False
     g_var.player_money = 0
     g_var.score = 0
 
 
     # --- 圖片路徑 ---
-    MELEE_IMAGE_PATH = "birdani/kiwi_bird_1.png"
-    RANGE_IMAGE_PATH = "birdani/kiwi_bird_attack_1.png"
-    ENEMY_IMAGE_PATH = "mushrooms/香菇1_20250429134900.png"
+    # MELEE_IMAGE_PATH = "birdani/kiwi_bird_1.png"
+    # RANGE_IMAGE_PATH = "birdani/kiwi_bird_attack_1.png"
+    # ENEMY_IMAGE_PATH = "mushrooms/香菇1_20250429134900.png"
 
-    def load_image(path, size=(30,30), color=BLUE):
-        if os.path.exists(path):
-            img = pygame.image.load(path).convert_alpha()
-            return pygame.transform.scale(img, size)
-        else:
-            surf = pygame.Surface(size)
-            surf.fill(color)
+    
 
     # melee_image = load_image(MELEE_IMAGE_PATH, (30,30), BLUE)
     # range_image = load_image(RANGE_IMAGE_PATH, (30,30), GREEN)
@@ -78,6 +83,32 @@ def play_game(screen:pygame.Surface, level_state:str):
     # --- 背景 ---
     background = pygame.image.load("misks/background.png").convert()
     background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+
+    pause_menu = pygame.image.load("UI/paused_menu.png").convert_alpha()
+    pause_menu = pygame.transform.scale(pause_menu, (560, 340))
+
+    pause_button = pygame.sprite.GroupSingle(Interactive_button(
+        location = (150,50),
+        font=font,
+        button_surf=load_image("UI/pause_button.png", size=(50,50)),
+        hover_button_surf=load_image("UI/pause_button.png", size=(50,50)),
+        size=(50,50)
+    ))
+    pause_menu_back_button = pygame.sprite.GroupSingle(Interactive_button(
+        location=(620,120),
+        font=font,
+        button_surf=load_image("UI/backb.png", size=(75,75)),
+        hover_button_surf=load_image("UI/backb.png", size=(75,75)),
+        size=(75,75)
+    ))
+    pause_menu_quit_button = pygame.sprite.GroupSingle(Interactive_button(
+        location=(300,230),
+        font=font,
+        button_surf=load_image("UI/quit_button.png", size=(150,75)),
+        hover_button_surf=load_image("UI/quit_button.png", size=(150,75)),
+        size=(150,75)
+    ))
+
 
     # --- 群組 ---
     allies = pygame.sprite.Group()
@@ -374,201 +405,230 @@ def play_game(screen:pygame.Surface, level_state:str):
     running = True
     while running:
         clock.tick(60)
-        screen.blit(background, (0, 0))
         mouse_button_down_event = False
 
-        # 每秒加錢
-        now = time.time()
-        if now - last_income_time >= 1:
-            g_var.player_money += 3
-            last_income_time = now
+        current_tick_screen = screen.copy()
 
-        # 事件
-        for event in pygame.event.get():
+        if g_var.paused:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-            if event.type==pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+            if pause_menu_back_button.sprite.is_pressed():
+                g_var.paused = False
+            if pause_menu_quit_button.sprite.is_pressed():
+                return
+            
+            screen.blit(current_tick_screen,(0,0))
+            screen.blit(pause_menu,(200,50))
+            pause_menu_back_button.draw(screen)
+            pause_menu_back_button.update(screen)
+            pause_menu_quit_button.draw(screen)
+            pause_menu_quit_button.update(screen)
 
-            if event.type == enemy_spawn:   #enemy spawning
-                for i in range(spawning_timer(enemy_group=enemies, level_state=level_state, time=now-game_started_time)):
-                    temp = random.randint(0,3)
-                    if temp==0:
+        else:
+            # 每秒加錢
+            now = time.time()
+            if now - last_income_time >= 1:
+                g_var.player_money += 3
+                last_income_time = now
 
-                        enemies.add(Enemy(
-                            x=WIDTH + (random.randint(50,300)), 
+            # 事件
+            for event in pygame.event.get():
+
+                if event.type==pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == enemy_spawn:   #enemy spawning
+                    for i in range(spawning_timer(enemy_group=enemies, level_state=level_state, time=now-game_started_time)):
+                        temp = random.randint(0,3)
+                        if temp==0:
+
+                            enemies.add(Enemy(
+                                x=WIDTH + (random.randint(50,300)), 
+                                y=300,
+                                images_walk = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
+                                images_attack = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
+                                hp=10,
+                                score_when_killed=20,
+                                money_when_killed=1
+                            ))
+
+                        elif temp ==1:
+
+                            enemies.add(Enemy(
+                                x=WIDTH + (random.randint(50,300)), 
+                                y=300,
+                                images_walk = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
+                                images_attack = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
+                                hp=25,
+                                score_when_killed=50,
+                                money_when_killed=3
+                            ))
+
+                        elif temp ==2:
+
+                            enemies.add(Enemy(
+                                x=WIDTH + (random.randint(50,300)), 
+                                y=300,
+                                images_walk = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
+                                images_attack = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
+                                hp=40,
+                                score_when_killed=80,
+                                money_when_killed=3
+                            ))
+
+                        else:
+
+                            enemies.add(Enemy(
+                                x=WIDTH + (random.randint(50,300)), 
+                                y=300,
+                                images_walk = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
+                                images_attack = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
+                                hp=15,
+                                score_when_killed=30,
+                                money_when_killed=1
+                            ))
+
+                if event.type==pygame.KEYDOWN:
+                    pass
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_button_down_event = True
+
+                #spawning_warriors
+                if event.type == warrior_spawn: 
+                    if g_var.player_money >= 10:
+                        walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
+                        attack_images = [pygame.image.load(f"birdani/kiwi_bird_jump_{i}.png") for i in range(1,8)]
+                        allies.add(Unit(
+                            x=50,
                             y=300,
-                            images_walk = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
-                            images_attack = [pygame.image.load(f"mushrooms/mushroom_walk_{i}.png") for i in range(1,4)],
-                            hp=10,
-                            score_when_killed=20,
-                            money_when_killed=1
-                        ))
-
-                    elif temp ==1:
-
-                        enemies.add(Enemy(
-                            x=WIDTH + (random.randint(50,300)), 
-                            y=300,
-                            images_walk = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
-                            images_attack = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
-                            hp=25,
-                            score_when_killed=50,
-                            money_when_killed=3
-                        ))
-
-                    elif temp ==2:
-
-                        enemies.add(Enemy(
-                            x=WIDTH + (random.randint(50,300)), 
-                            y=300,
-                            images_walk = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
-                            images_attack = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
+                            images_walk=walk_images,
+                            images_attack=attack_images,
+                            attack=5, 
+                            attack_speed=0.8, 
                             hp=40,
-                            score_when_killed=80,
-                            money_when_killed=3
+                            range_type="melee", 
+                            move_speed=2.0, 
+                            attack_range=40
                         ))
+                        g_var.player_money -=10
 
-                    else:
+                if event.type == archer_spawn:
+                    if g_var.player_money >= 15:
+                        walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
+                        attack_images = [pygame.image.load(f"birdani/kiwi_bird_attack_{i}.png") for i in range(1,5)]
+                        allies.add(Unit(
+                            x=50, 
+                            y=300, 
+                            images_walk= walk_images,
+                            images_attack= attack_images,
+                            attack=8, 
+                            attack_speed=0.5, 
+                            hp=25,
+                            range_type="ranged", 
+                            move_speed=1, 
+                            attack_range=150))
+                        g_var.player_money -=15
 
-                        enemies.add(Enemy(
-                            x=WIDTH + (random.randint(50,300)), 
-                            y=300,
-                            images_walk = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
-                            images_attack = [pygame.image.load(f"mushrooms/mushroom4_walk_{i}.png") for i in range(1,7)],
-                            hp=15,
-                            score_when_killed=30,
-                            money_when_killed=1
-                        ))
+                if event.type == kiwi_boss_spawn:
+                    if g_var.player_money >= 40:
+                        walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
+                        attack_images = [pygame.image.load(f"birdani/kiwi_boss_{i}.png") for i in range(1,11)]
+                        allies.add(Unit(
+                            x=50, 
+                            y=300, 
+                            images_walk= walk_images,
+                            images_attack= attack_images,
+                            attack=30, 
+                            attack_speed=0.5, 
+                            hp=150,
+                            range_type="melee", 
+                            move_speed=1, 
+                            attack_range=40,
+                            frame_interval=0.1))
+                        g_var.player_money -=40
 
-            if event.type==pygame.KEYDOWN:
-                pass
+            # 更新
+            allies.update(enemies)
+            enemies.update(allies)
+            arrows.update()
+            hit_effects.update()
+            character_select_boxes.update()
+            for character in character_select_boxes:
+                if character.is_clicked() and mouse_button_down_event: pygame.event.post(character.spawning_event)
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_button_down_event = True
+            # 檢查敵人攻擊基地
+            for e in enemies:
+                if e.rect.x <= 0:
+                    BASE_HP -= e.attack
+                    e.kill()
 
-            #spawning_warriors
-            if event.type == warrior_spawn: 
-                if g_var.player_money >= 10:
-                    walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                    attack_images = [pygame.image.load(f"birdani/kiwi_bird_jump_{i}.png") for i in range(1,8)]
-                    allies.add(Unit(
-                        x=50,
-                        y=300,
-                        images_walk=walk_images,
-                        images_attack=attack_images,
-                        attack=5, 
-                        attack_speed=0.8, 
-                        hp=40,
-                        range_type="melee", 
-                        move_speed=2.0, 
-                        attack_range=40
-                    ))
-                    g_var.player_money -=10
+            # 遊戲結束判定
+            if BASE_HP <=0:
+                screen.fill((200,0,0))
+                game_over_text = font_bigger.render("Lose", True, WHITE)
+                game_over_score_text = font_bigger.render(f"Your score: {g_var.score}", True, WHITE)
+                screen.blit(game_over_text, (150,100))
+                screen.blit(game_over_score_text,(150,150))
+                pygame.display.flip()
+                pygame.time.wait(1000)
+                running = False
 
-            if event.type == archer_spawn:
-                if g_var.player_money >= 15:
-                    walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                    attack_images = [pygame.image.load(f"birdani/kiwi_bird_attack_{i}.png") for i in range(1,5)]
-                    allies.add(Unit(
-                        x=50, 
-                        y=300, 
-                        images_walk= walk_images,
-                        images_attack= attack_images,
-                        attack=8, 
-                        attack_speed=0.5, 
-                        hp=25,
-                        range_type="ranged", 
-                        move_speed=1, 
-                        attack_range=150))
-                    g_var.player_money -=15
+            # 胜利判定
+            if len(towers) == 0:
+                screen.fill((0,200,0))
+                win_text = font_bigger.render("Win", True, WHITE)
+                game_over_score_text = font_bigger.render(f"Your score: {g_var.score}", True, WHITE)
+                screen.blit(win_text, (150,100))
+                screen.blit(game_over_score_text,(150,150))
+                pygame.display.flip()
+                pygame.time.wait(1000)
+                running = False
 
-            if event.type == kiwi_boss_spawn:
-                if g_var.player_money >= 40:
-                    walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                    attack_images = [pygame.image.load(f"birdani/kiwi_boss_{i}.png") for i in range(1,11)]
-                    allies.add(Unit(
-                        x=50, 
-                        y=300, 
-                        images_walk= walk_images,
-                        images_attack= attack_images,
-                        attack=30, 
-                        attack_speed=0.5, 
-                        hp=150,
-                        range_type="melee", 
-                        move_speed=1, 
-                        attack_range=40,
-                        frame_interval=0.1))
-                    g_var.player_money -=40
+            # 繪製
+            screen.blit(background, (0, 0))
+            towers.draw(screen)
+            allies.draw(screen)
+            enemies.draw(screen)
+            character_select_boxes.draw(screen)
+            for arrow in arrows:
+                arrow.draw(screen)
+            for effect in hit_effects:
+                effect.draw(screen)
+            
 
-        # 更新
-        allies.update(enemies)
-        enemies.update(allies)
-        arrows.update()
-        hit_effects.update()
-        character_select_boxes.update()
-        for character in character_select_boxes:
-            if character.is_clicked() and mouse_button_down_event: pygame.event.post(character.spawning_event)
+            # 顯示血條
+            for ally in allies:
+                ally.draw_health(screen)
+            for e in enemies:
+                e.draw_health(screen)
+            for t in towers:
+                t.draw_health(screen)
 
-        # 檢查敵人攻擊基地
-        for e in enemies:
-            if e.rect.x <= 0:
-                BASE_HP -= e.attack
-                e.kill()
+            # 顯示金錢
+            money_text = font.render(f"Money: {g_var.player_money}", True, YELLOW)
+            screen.blit(money_text, (10,10))
 
-        # 遊戲結束判定
-        if BASE_HP <=0:
-            screen.fill((200,0,0))
-            game_over_text = font_bigger.render("Lose", True, WHITE)
-            game_over_score_text = font_bigger.render(f"Your score: {g_var.score}", True, WHITE)
-            screen.blit(game_over_text, (150,100))
-            screen.blit(game_over_score_text,(150,150))
-            pygame.display.flip()
-            pygame.time.wait(1000)
-            running = False
+            # draw base hp box
+            pygame.draw.rect(screen, RED, (WIDTH-220, 20, 200, 16))
+            pygame.draw.rect(screen, GREEN, (WIDTH-220, 20, 200*(BASE_HP/100), 16))
+            screen.blit(font.render("base", True, YELLOW), (WIDTH-270,20))
 
-        # 胜利判定
-        if len(towers) == 0:
-            screen.fill((0,200,0))
-            win_text = font_bigger.render("Win", True, WHITE)
-            game_over_score_text = font_bigger.render(f"Your score: {g_var.score}", True, WHITE)
-            screen.blit(win_text, (150,100))
-            screen.blit(game_over_score_text,(150,150))
-            pygame.display.flip()
-            pygame.time.wait(1000)
-            running = False
+            # draw score text
+            score_text = font.render(f"Score: {g_var.score}", True, YELLOW)
+            screen.blit(score_text, (10,30))
 
-        # 繪製
-        towers.draw(screen)
-        allies.draw(screen)
-        enemies.draw(screen)
-        character_select_boxes.draw(screen)
-        for arrow in arrows:
-            arrow.draw(screen)
-        for effect in hit_effects:
-            effect.draw(screen)
-        
+            #draw pause button
+            pause_button.draw(screen)
+            pause_button.update(screen)
 
-        # 顯示血條
-        for ally in allies:
-            ally.draw_health(screen)
-        for e in enemies:
-            e.draw_health(screen)
-        for t in towers:
-            t.draw_health(screen)
-
-        # 顯示金錢
-        money_text = font.render(f"Money: {g_var.player_money}", True, YELLOW)
-        screen.blit(money_text, (10,10))
-
-        # draw base hp box
-        pygame.draw.rect(screen, RED, (WIDTH-220, 20, 200, 16))
-        pygame.draw.rect(screen, GREEN, (WIDTH-220, 20, 200*(BASE_HP/100), 16))
-        screen.blit(font.render("base", True, YELLOW), (WIDTH-270,20))
-
-        # draw score text
-        score_text = font.render(f"Score: {g_var.score}", True, YELLOW)
-        screen.blit(score_text, (10,30))
+            #detect if paused
+            if pause_button.sprite.is_pressed():
+                g_var.paused = True
 
         pygame.display.flip()
 
