@@ -67,18 +67,7 @@ def play_game(screen:pygame.Surface, level_state:str):
     g_var.paused = False
     g_var.player_money = 0
     g_var.score = 0
-
-
-    # --- 圖片路徑 ---
-    # MELEE_IMAGE_PATH = "birdani/kiwi_bird_1.png"
-    # RANGE_IMAGE_PATH = "birdani/kiwi_bird_attack_1.png"
-    # ENEMY_IMAGE_PATH = "mushrooms/香菇1_20250429134900.png"
-
-    
-
-    # melee_image = load_image(MELEE_IMAGE_PATH, (30,30), BLUE)
-    # range_image = load_image(RANGE_IMAGE_PATH, (30,30), GREEN)
-    # enemy_image = load_image(ENEMY_IMAGE_PATH, (30,30), RED)
+    g_var.money_per_sec = 3
 
     # --- 背景 ---
     background = pygame.image.load("misks/background.png").convert()
@@ -95,14 +84,14 @@ def play_game(screen:pygame.Surface, level_state:str):
         size=(50,50)
     ))
     pause_menu_back_button = pygame.sprite.GroupSingle(Interactive_button(
-        location=(620,120),
+        location=(700,120),
         font=font,
         button_surf=load_image("UI/backb.png", size=(75,75)),
         hover_button_surf=load_image("UI/backb.png", size=(75,75)),
         size=(75,75)
     ))
     pause_menu_quit_button = pygame.sprite.GroupSingle(Interactive_button(
-        location=(300,230),
+        location=(350,180),
         font=font,
         button_surf=load_image("UI/quit_button.png", size=(150,75)),
         hover_button_surf=load_image("UI/quit_button.png", size=(150,75)),
@@ -160,13 +149,26 @@ def play_game(screen:pygame.Surface, level_state:str):
             surface.blit(self.image, self.rect)
 
     class Unit(pygame.sprite.Sprite):
-        def __init__(self, x, y, images_walk, images_attack, attack, attack_speed, hp, range_type, move_speed=1.0, attack_range=None, frame_interval=0.2):
+        def __init__(self,
+                    x, 
+                    y, 
+                    images_walk, 
+                    images_attack, 
+                    attack, 
+                    attack_speed, 
+                    hp, 
+                    range_type, 
+                    move_speed=1.0, 
+                    attack_range=None, 
+                    frame_interval=0.2,
+                    size=(50,50)):
             super().__init__()
+            self.size = size
             self.images_walk = images_walk      # 走路動畫圖片列表
             self.images_attack = images_attack  # 攻擊動畫圖片列表
             self.image_index = 0
             self.image = self.images_walk[self.image_index]
-            self.image=pygame.transform.scale(self.image,(50,50))
+            self.image=pygame.transform.scale(self.image,size=self.size)
             self.image=pygame.transform.flip(self.image,1,0)
             self.rect = self.image.get_rect(midleft=(x,y))
             self.attack = attack
@@ -187,7 +189,7 @@ def play_game(screen:pygame.Surface, level_state:str):
             if now - self.last_frame_time > self.frame_interval:
                 self.image_index = (self.image_index + 1) % (len(self.images_walk) if self.state=="walk" else len(self.images_attack))
                 self.image = self.images_walk[self.image_index] if self.state=="walk" else self.images_attack[self.image_index]
-                self.image=pygame.transform.scale(self.image,(50,50))  
+                self.image=pygame.transform.scale(self.image,self.size)  
                 self.image=pygame.transform.flip(self.image,1,0)
                 self.last_frame_time = now
             
@@ -245,13 +247,24 @@ def play_game(screen:pygame.Surface, level_state:str):
             pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*ratio, bar_height))
 
     class Enemy(pygame.sprite.Sprite):
-        def __init__(self, x, y,images_walk, images_attack, score_when_killed, money_when_killed, hp=30, attack=3, frame_interval=0.2):
+        def __init__(self, 
+                    x, 
+                    y,
+                    images_walk, 
+                    images_attack, 
+                    score_when_killed, 
+                    money_when_killed, 
+                    hp=30, 
+                    attack=3, 
+                    frame_interval=0.2,
+                    size=(50,50)):
             super().__init__()
+            self.size=size
             self.images_walk = images_walk      # 走路動畫圖片列表
             self.images_attack = images_attack  # 攻擊動畫圖片列表
             self.image_index = 0
             self.image = self.images_walk[self.image_index]
-            self.image=pygame.transform.scale(self.image,(50,50))
+            self.image=pygame.transform.scale(self.image,self.size)
             self.image=pygame.transform.flip(self.image,1,0)
             self.rect = self.image.get_rect(midright=(x,y))
             self.hp = hp
@@ -302,12 +315,9 @@ def play_game(screen:pygame.Surface, level_state:str):
             if now - self.last_frame_time > self.frame_interval:
                 self.image_index = (self.image_index + 1) % (len(self.images_walk) if self.state=="walk" else len(self.images_attack))
                 self.image = self.images_walk[self.image_index] if self.state=="walk" else self.images_attack[self.image_index]
-                self.image=pygame.transform.scale(self.image,(50,50))  
+                self.image=pygame.transform.scale(self.image,self.size)  
                 self.image=pygame.transform.flip(self.image,1,0)
                 self.last_frame_time = now
-
-
-
 
     class Tower(pygame.sprite.Sprite):
         def __init__(self,x,y,hp=100):
@@ -362,6 +372,61 @@ def play_game(screen:pygame.Surface, level_state:str):
             else:
                 self.image = self.default_image
 
+    class Level_up_button(Interactive_button):
+        def __init__(
+                self, 
+                location = (60,350), 
+                font:pygame.font.Font=font, 
+                button_surf:str=None, 
+                hover_button_surf:str=None, 
+                text_color="#000000",
+                size=(120,100)
+            ):
+
+            button_surf = load_image(button_surf, (120,100))
+            hover_button_surf = load_image(hover_button_surf, (120,100))
+
+            super().__init__(
+                location=location,
+                font=font,
+                button_surf=button_surf,
+                hover_button_surf=hover_button_surf,
+                text_color=text_color,
+                size=size
+            )
+            self.size = size
+            self.text_color = text_color
+            self.level = 1
+            self.money_per_second = [3,4,5,6,7]
+            self.price_to_next_level=[30,60,100,250]
+            self.upleft_corner = (self.location[0]-(self.size[0]/2),self.location[1]-(self.size[1]/2))
+
+        def is_clicked(self):
+            return pygame.Rect.collidepoint(self.rect, pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]
+
+        def draw_price_text(self,screen):
+            if self.level <= 4:
+                text_surf = self.font.render("$"+str(self.price_to_next_level[self.level-1]), False, self.text_color)
+                text_surf = pygame.transform.scale_by(text_surf, 0.8)
+                text_rect = text_surf.get_rect(center = (self.upleft_corner[0]+70,self.upleft_corner[1]+30))  #0,300 is the left up corner of the self.image(according to the calculation)
+                screen.blit(text_surf, text_rect)
+            else:
+                text_surf = self.font.render("MAX", False, self.text_color)
+                text_surf = pygame.transform.scale_by(text_surf, 0.8)
+                text_rect = text_surf.get_rect(center = (self.upleft_corner[0]+70,self.upleft_corner[1]+30))
+                screen.blit(text_surf, text_rect)
+
+        def draw_level_text(self,screen):
+            text_surf = self.font.render("Level "+str(self.level), False, self.text_color)
+            text_surf = pygame.transform.scale_by(text_surf, 0.8)
+            text_rect = text_surf.get_rect(center = (self.upleft_corner[0]+50,self.upleft_corner[1]+80))
+            screen.blit(text_surf, text_rect)
+
+        def update(self, screen):
+            super().update(screen)
+            
+            self.draw_price_text(screen)
+            self.draw_level_text(screen)
 
     # ---------- 初始敵人與塔 ----------
     # for i in range(3):
@@ -395,6 +460,12 @@ def play_game(screen:pygame.Surface, level_state:str):
         center_location=(600,80),
         size=(80,80),
         spawning_event=kiwi_boss_spawn
+    ))
+
+    # ---level up button---
+    level_up_button = pygame.sprite.GroupSingle(Level_up_button(
+        button_surf="UI/level_up_button_0.png",
+        hover_button_surf="UI/level_up_button_1.png"
     ))
 
     # ---enemy spawning timer---
@@ -431,7 +502,7 @@ def play_game(screen:pygame.Surface, level_state:str):
             # 每秒加錢
             now = time.time()
             if now - last_income_time >= 1:
-                g_var.player_money += 3
+                g_var.player_money += g_var.money_per_sec
                 last_income_time = now
 
             # 事件
@@ -549,7 +620,8 @@ def play_game(screen:pygame.Surface, level_state:str):
                             range_type="melee", 
                             move_speed=1, 
                             attack_range=40,
-                            frame_interval=0.1))
+                            frame_interval=0.1,
+                            size=(70,70)))
                         g_var.player_money -=40
 
             # 更新
@@ -560,6 +632,14 @@ def play_game(screen:pygame.Surface, level_state:str):
             character_select_boxes.update()
             for character in character_select_boxes:
                 if character.is_clicked() and mouse_button_down_event: pygame.event.post(character.spawning_event)
+
+            if level_up_button.sprite.is_clicked() and mouse_button_down_event:
+                if level_up_button.sprite.level < 5:
+                    if g_var.player_money >= level_up_button.sprite.price_to_next_level[level_up_button.sprite.level-1]:
+                        g_var.player_money -= level_up_button.sprite.price_to_next_level[level_up_button.sprite.level-1]
+                        level_up_button.sprite.level += 1
+            g_var.money_per_sec = level_up_button.sprite.money_per_second[level_up_button.sprite.level-1]
+            
 
             # 檢查敵人攻擊基地
             for e in enemies:
@@ -625,6 +705,10 @@ def play_game(screen:pygame.Surface, level_state:str):
             #draw pause button
             pause_button.draw(screen)
             pause_button.update(screen)
+
+            #draw level up button
+            level_up_button.draw(screen)
+            level_up_button.update(screen)
 
             #detect if paused
             if pause_button.sprite.is_pressed():

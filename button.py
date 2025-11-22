@@ -3,7 +3,7 @@ import pygame, sys
 
 class Interactive_button(pygame.sprite.Sprite):
     def __init__(self,location:tuple,
-                font=None,
+                font:pygame.font.Font=None,
                 text='',
                 button_surf = None,
                 hover_button_surf = None,
