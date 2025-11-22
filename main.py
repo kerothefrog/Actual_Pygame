@@ -1,6 +1,6 @@
 import pygame, sys
 from starting_menu import StartMenu
-from settings import Settings
+from characters_menu import Characters_menu
 from main_menu import MainMenu
 from credits import Credits
 from gameplay import play_game
@@ -8,14 +8,31 @@ from gameplay import play_game
 def get_class(state:str):
     if state == 'start menu':
         return start_menu
-    elif state == 'settings':
-        return settings
+    elif state == 'characters_menu':
+        return characters_menu
     elif state == 'main_menu':
         return main_menu
     elif state == 'credits':
         return credits
-    elif state == 'gameplay':
-        play_game(screen=screen)
+    
+    elif state == 'gameplay1':
+        play_game(screen=screen, level_state='gameplay1')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay2':
+        play_game(screen=screen, level_state='gameplay2')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay3':
+        play_game(screen=screen, level_state='gameplay3')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay4':
+        play_game(screen=screen, level_state='gameplay4')
+        state = 'main_menu'
+        return main_menu
+    elif state == 'gameplay5':
+        play_game(screen=screen, level_state='gameplay5')
         state = 'main_menu'
         return main_menu
     else:
@@ -25,10 +42,13 @@ pygame.init()
 screen = pygame.display.set_mode((900, 400))
 pygame.display.set_caption("31426")
 clock = pygame.time.Clock()
+# bg_music = pygame.mixer.Sound("audio/What_Is_This_Diddy_Blud_Doing.mp3")
+# bg_music.set_volume(0.3)
+# bg_music.play(loops=-1)
 
 curr_state = 'start menu'
 start_menu = StartMenu(screen)
-settings = Settings(screen)
+characters_menu = Characters_menu(screen)
 main_menu = MainMenu(screen)
 credits = Credits(screen)
 

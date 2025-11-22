@@ -3,7 +3,7 @@ import pygame, sys
 
 class Interactive_button(pygame.sprite.Sprite):
     def __init__(self,location:tuple,
-                font:pygame.font.SysFont,
+                font:pygame.font.Font=None,
                 text='',
                 button_surf = None,
                 hover_button_surf = None,
@@ -22,20 +22,21 @@ class Interactive_button(pygame.sprite.Sprite):
         self.size = (0,0)
 
         #button size
-        proper_size = self.setSize()
-        if size != (0,0):
-            try:
-                if size[0] < proper_size[0] or size[1] < proper_size[1]:
-                    raise SizeInvalidException
-                else:
-                    self.size = size
-            except:
-                print('interactive button size invalid')
-                sys.exit()
-        else:
-            self.size = proper_size
+        if self.text != '':
+            proper_size = self.setSize()
+            if size != (0,0):
+                try:
+                    if size[0] < proper_size[0] or size[1] < proper_size[1]:
+                        raise SizeInvalidException
+                    else:
+                        self.size = size
+                except:
+                    print('interactive button size invalid')
+                    sys.exit()
+            else:
+                self.size = proper_size
 
-
+        
         self.text_surf = self.setText()
 
         #surface

@@ -8,23 +8,21 @@ class MainMenu:
         self.image = pygame.transform.scale(self.image, (900,400))
         self.rect = self.image.get_rect(topleft = (0,0))
 
+        back_button = pygame.image.load("UI/back_button.png").convert_alpha()
+        back_button = pygame.transform.scale(back_button,(120,50))
+
+
         self.back_button = pygame.sprite.GroupSingle(Interactive_button(
             location=(800,300),
             font=pygame.font.SysFont(None,40),
-            text='Back',
+            text='',
             text_color="#FFFFFF",
             color="#5D5D5D",
-            hover_color="#A7A7A7"
+            hover_color="#A7A7A7",
+            button_surf=back_button,
+            hover_button_surf=back_button
         ))
         
-        self.play_demo_button = pygame.sprite.GroupSingle(Interactive_button(
-            location=(450,350),
-            font = pygame.font.SysFont(None,40),
-            text='play demo level',
-            text_color="#FFFFFF",
-            color="#5D5D5D",
-            hover_color="#A7A7A7"
-        ))
 
         #flags
         flag_surf = pygame.image.load("UI/flag.png").convert_alpha()
@@ -89,9 +87,7 @@ class MainMenu:
         self.screen.blit(self.image, self.rect)
 
         self.back_button.draw(self.screen)
-        self.play_demo_button.draw(self.screen)
         self.back_button.update(self.screen)
-        self.play_demo_button.update(self.screen)
 
         self.level_1_button.draw(self.screen)
         self.level_1_button.update(self.screen)
@@ -111,7 +107,17 @@ class MainMenu:
     def if_button_pressed(self):
         if self.back_button.sprite.is_pressed():
             return 'start menu'
-        if self.play_demo_button.sprite.is_pressed():
-            return 'gameplay'
+        
+        if self.level_1_button.sprite.is_pressed():
+            return 'gameplay1'
+        if self.level_2_button.sprite.is_pressed():
+            return 'gameplay2'
+        if self.level_3_button.sprite.is_pressed():
+            return 'gameplay3'
+        if self.level_4_button.sprite.is_pressed():
+            return 'gameplay4'
+        
+        if self.boss_level_button.sprite.is_pressed():
+            return 'gameplay5'
         else:
             return 'main_menu'
