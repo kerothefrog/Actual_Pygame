@@ -78,7 +78,7 @@ class Characters_menu:
 
         temp = self.set_character_surf("birdani/kiwi_bird_1.png")
         self.characters.add(Characters_info(
-            location=(100,300),
+            location=(100,150),
             font=pygame.font.SysFont(None,40),
             text="",
             button_surf=temp[0],
@@ -88,7 +88,7 @@ class Characters_menu:
 
         temp = self.set_character_surf("birdani/kiwi_bird_attack_1.png")
         self.characters.add(Characters_info(
-            location=(270,300),
+            location=(100,300),
             font=pygame.font.SysFont(None,40),
             text="",
             button_surf=temp[0],
@@ -96,9 +96,9 @@ class Characters_menu:
             info_text=["attack=8", "attack speed=0.5", "hp=25", "move speed=1.0", "attack range=150"]
         ))
 
-        temp = self.set_character_surf("birdani/kiwi_boss_1.png")
+        temp = self.set_character_surf("birdani/kiwi_boss_walk_1.png")
         self.characters.add(Characters_info(
-            location=(440,300),
+            location=(270,300),
             font=pygame.font.SysFont(None,40),
             text="",
             button_surf=temp[0],

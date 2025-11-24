@@ -18,14 +18,14 @@ def spawning_timer(enemy_group:pygame.sprite.Group, level_state:str, time):
         else:
             return temp
     elif level_state == 'gameplay3':
-        temp = int(math.log10(time)+3)
-        if len(enemy_group)>25 :return 0
+        temp = int(math.log10(time)+4)
+        if len(enemy_group)>35 :return 0
         if temp > 7:
             return 7 
         else:
             return temp
     elif level_state == 'gameplay4':
-        if time < 12.4:
+        if time < 11.8:
             return 0
         else:
             return int(time/5)
@@ -77,7 +77,7 @@ def play_game(screen:pygame.Surface, level_state:str):
     pause_menu = pygame.transform.scale(pause_menu, (560, 340))
 
     pause_button = pygame.sprite.GroupSingle(Interactive_button(
-        location = (150,50),
+        location = (200,40),
         font=font,
         button_surf=load_image("UI/pause_button.png", size=(50,50)),
         hover_button_surf=load_image("UI/pause_button.png", size=(50,50)),
@@ -246,6 +246,127 @@ def play_game(screen:pygame.Surface, level_state:str):
             pygame.draw.rect(surface, RED, (self.rect.x, self.rect.y - 6, bar_width, bar_height))
             pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*ratio, bar_height))
 
+    class AOE_Unit(pygame.sprite.Sprite):
+        def __init__(self,
+                    x,
+                    y,
+                    images_walk,
+                    images_attack,
+                    attack,
+                    hp,
+                    range_type, #"bomber"
+                    move_speed,
+                    attack_range,
+                    frame_interval=0.2,
+                    size=(50,50)):
+            super().__init__()
+            self.size = size
+            self.images_walk = images_walk
+            self.images_attack= images_attack
+            self.image_index = 0
+            self.image = self.images_walk[self.image_index]
+            self.image=pygame.transform.scale(self.image,size=self.size)
+            self.image=pygame.transform.flip(self.image,1,0)
+            self.rect = self.image.get_rect(midleft=(x,y))
+            self.attack = attack
+            self.hp = hp
+            self.full_hp = hp
+            self.range_type = range_type
+            self.last_attack_time = time.time()
+            self.target = None
+            self.speed = move_speed
+            self.attack_range = attack_range
+            self.last_frame_time = time.time()
+            self.frame_interval = frame_interval  # 每0.2秒換一張圖片
+            self.state = "walk"  # "walk" 或 "attack” or "charging"
+
+        def update_animation(self):
+            now = time.time()
+            if now - self.last_frame_time > self.frame_interval:
+                if self.state == 'walk':
+                    self.image_index = (self.image_index + 1) % len(self.images_walk)
+                    self.image = self.images_walk[self.image_index]
+                    self.image=pygame.transform.scale(self.image,self.size)  
+                    self.image=pygame.transform.flip(self.image,1,0)
+                    self.last_frame_time = now
+                elif self.state == 'charging' or 'attack':
+                    if self.image_index == 14:
+                        self.kill()
+                    elif self.image_index == 10:
+                        self.state = 'attack'
+                        self.image_index = (self.image_index + 1) % len(self.images_attack)
+                        self.image = self.images_attack[self.image_index]
+                        self.image=pygame.transform.scale(self.image,self.size)  
+                        self.image=pygame.transform.flip(self.image,1,0)
+                        self.last_frame_time = now
+                    else:
+                        self.image_index = (self.image_index + 1) % len(self.images_attack)
+                        self.image = self.images_attack[self.image_index]
+                        self.image=pygame.transform.scale(self.image,self.size)  
+                        self.image=pygame.transform.flip(self.image,1,0)
+                        self.last_frame_time = now
+                else:
+                    print('aoe unit: animation went wrong')
+
+        def update(self, enemies):
+            self.update_animation()
+            if self.state == 'walk':
+                # 找目標：先敵人，再塔
+                self.target=None
+                for e in enemies:
+                    distance = e.rect.x - self.rect.x
+                    if 0 < distance <= self.attack_range:
+                        self.target = e
+                        break
+                if self.target is None:
+                    for t in towers:
+                        distance = t.rect.x - self.rect.x
+                        if 0 < distance <= self.attack_range:
+                            self.target = t
+                            break
+                
+                # 移動
+                if self.target:
+                    distance = self.target.rect.x - self.rect.x
+                    if distance > self.attack_range:
+                        self.rect.x += min(self.speed, distance - self.attack_range)
+                    else:
+                        self.state = 'charging'
+                        self.image_index = 0
+                else:
+                    self.rect.x += self.speed
+
+                if self.hp <= 0 and (self.state != "charging" or self.state != "attack") :
+                    self.state = 'charging'
+                    self.image_index = 0
+
+                
+                
+            elif self.state == 'attack':
+                #attack
+                for e in enemies:
+                    distance = e.rect.x - self.rect.x
+                    if 0 < distance <= 150:
+                        e.hp -= self.attack
+                self.state = 'charging'
+            elif self.state == 'charging':
+                pass
+            else:
+                print('aoe unit update: something went wrong')
+
+            self.update_animation()
+
+
+        def draw_health(self, surface):
+            bar_width = self.rect.width
+            bar_height = 4
+            ratio = max(self.hp / self.full_hp, 0)
+            pygame.draw.rect(surface, RED, (self.rect.x, self.rect.y - 6, bar_width, bar_height))
+            pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*ratio, bar_height))
+
+            
+
+
     class Enemy(pygame.sprite.Sprite):
         def __init__(self, 
                     x, 
@@ -323,7 +444,7 @@ def play_game(screen:pygame.Surface, level_state:str):
         def __init__(self,x,y,hp=100):
             super().__init__()
             self.image = pygame.image.load("misks/villiagehousestileset2.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image,(40,60))
+            self.image = pygame.transform.scale(self.image,(100,100))
             self.rect = self.image.get_rect(midbottom=(x,y))
             self.hp = hp
 
@@ -439,27 +560,35 @@ def play_game(screen:pygame.Surface, level_state:str):
     warrior_spawn = pygame.event.custom_type()
     archer_spawn = pygame.event.custom_type()
     kiwi_boss_spawn = pygame.event.custom_type()
+    bomber_spawn = pygame.event.custom_type()
 
     character_select_boxes.add(Character_select_box(
         default_image="UI/archer_select_box_1.png",
         hover_image="UI/archer_select_box_2.png",
-        center_location=(400,80),
+        center_location=(300,80),
         size=(80,80),
         spawning_event=archer_spawn
     ))
     character_select_boxes.add(Character_select_box(
         default_image="UI/warrior_select_box_1.png",
         hover_image="UI/warrior_select_box_2.png",
-        center_location=(500,80),
+        center_location=(400,80),
         size=(80,80),
         spawning_event=warrior_spawn
     ))
     character_select_boxes.add(Character_select_box(
         default_image="UI/kiwi_boss_select_1.png",
         hover_image="UI/kiwi_boss_select_2.png",
-        center_location=(600,80),
+        center_location=(500,80),
         size=(80,80),
         spawning_event=kiwi_boss_spawn
+    ))
+    character_select_boxes.add(Character_select_box(
+        default_image="UI/bomber_select_box_1.png",
+        hover_image="UI/bomber_select_box_2.png",
+        center_location=(600,80),
+        size=(80,80),
+        spawning_event=bomber_spawn
     ))
 
     # ---level up button---
@@ -607,11 +736,11 @@ def play_game(screen:pygame.Surface, level_state:str):
 
                 if event.type == kiwi_boss_spawn:
                     if g_var.player_money >= 40:
-                        walk_images = [pygame.image.load(f"birdani/kiwi_bird_{i}.png") for i in range(1,9)]
-                        attack_images = [pygame.image.load(f"birdani/kiwi_boss_{i}.png") for i in range(1,11)]
+                        walk_images = [pygame.image.load(f"birdani/kiwi_boss_walk_{i}.png") for i in range(1,7)]
+                        attack_images = [pygame.image.load(f"birdani/kiwi_boss_attack_{i}.png") for i in range(1,11)]
                         allies.add(Unit(
                             x=50, 
-                            y=300, 
+                            y=265, 
                             images_walk= walk_images,
                             images_attack= attack_images,
                             attack=30, 
@@ -619,10 +748,28 @@ def play_game(screen:pygame.Surface, level_state:str):
                             hp=150,
                             range_type="melee", 
                             move_speed=1, 
-                            attack_range=40,
+                            attack_range=60,
                             frame_interval=0.1,
-                            size=(70,70)))
+                            size=(140,140)))
                         g_var.player_money -=40
+
+                if event.type == bomber_spawn:
+                    if g_var.player_money >= 100:
+                        walk_images = [pygame.image.load(f"birdani/kamakaze_bird_walk_{i}.png") for i in range(1,10)]
+                        attack_images = [pygame.image.load(f"birdani/kamakaze_bird_attack_{i}.png") for i in range(1,16)]
+                        allies.add(AOE_Unit(
+                            x=50,
+                            y=300,
+                            images_walk=walk_images,
+                            images_attack=attack_images,
+                            attack=25,
+                            hp=30,
+                            range_type="bomber",
+                            move_speed=1,
+                            attack_range=20,
+                            frame_interval=0.1
+                        ))
+                        g_var.player_money -= 100
 
             # 更新
             allies.update(enemies)
