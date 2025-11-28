@@ -68,6 +68,7 @@ def play_game(screen:pygame.Surface, level_state:str):
     g_var.player_money = 0
     g_var.score = 0
     g_var.money_per_sec = 3
+    g_var.ticks_since_game_start = 0
 
     # --- 背景 ---
     background = pygame.image.load("misks/background.png").convert()
@@ -354,7 +355,7 @@ def play_game(screen:pygame.Surface, level_state:str):
             else:
                 print('aoe unit update: something went wrong')
 
-            self.update_animation()
+            
 
 
         def draw_health(self, surface):
@@ -363,9 +364,6 @@ def play_game(screen:pygame.Surface, level_state:str):
             ratio = max(self.hp / self.full_hp, 0)
             pygame.draw.rect(surface, RED, (self.rect.x, self.rect.y - 6, bar_width, bar_height))
             pygame.draw.rect(surface, GREEN, (self.rect.x, self.rect.y - 6, bar_width*ratio, bar_height))
-
-            
-
 
     class Enemy(pygame.sprite.Sprite):
         def __init__(self, 
@@ -549,6 +547,109 @@ def play_game(screen:pygame.Surface, level_state:str):
             self.draw_price_text(screen)
             self.draw_level_text(screen)
 
+    class Meteor_cast_button(Interactive_button):
+        def __init__(
+            self, 
+            location, 
+            button_surf, 
+            hover_button_surf, 
+            spawning_event,
+            font = font, 
+            size=(120,120),
+            cd_time = 2    #second
+        ):
+            self.location = location
+            button_surf = load_image(button_surf, (120,120))
+            hover_button_surf = load_image(hover_button_surf, (120,120))
+            self.spawning_event = pygame.event.Event(spawning_event)
+
+            self.init_surf = button_surf
+            super().__init__(
+                location=location, 
+                font=font,
+                button_surf=button_surf, 
+                hover_button_surf=hover_button_surf, 
+                size=size
+            )
+            
+            self.ready = False
+            self.cd_time = cd_time
+            self.curr_timer = 0
+            self.last_ready_tick = 0
+
+        def draw_cooldown(self, screen):
+            bar_width = self.rect.width
+            bar_height = 8
+            ratio = min((g_var.ticks_since_game_start - self.last_ready_tick)/(60*self.cd_time), 1)
+            pygame.draw.rect(screen, "#606060", (self.rect.x, self.rect.bottom + 10, bar_width, bar_height))
+            pygame.draw.rect(screen, "#AFAFAF", (self.rect.x, self.rect.bottom + 10, bar_width*ratio, bar_height))
+
+
+        def update(self, screen, mouse_button_down_event):
+            super().update(screen)
+
+            if (g_var.ticks_since_game_start - self.last_ready_tick)/60 <= self.cd_time:
+                self.curr_timer = self.cd_time - int((g_var.ticks_since_game_start - self.last_ready_tick)/60)
+
+            if self.curr_timer == 0:
+                self.ready = True
+
+            if super().is_pressed() and mouse_button_down_event and self.ready:
+                self.ready = False
+                self.curr_timer = self.cd_time
+                self.last_ready_tick = g_var.ticks_since_game_start
+                pygame.event.post(self.spawning_event)
+                
+    class Meteor_Unit(pygame.sprite.Sprite):
+        def __init__(
+            self,
+            images,
+            attack,
+            attack_range,
+            frame_interval = 0.2,
+            size = (60,60)
+        ):
+            super().__init__()
+
+            self.images_fly = images
+            self.frame_interval = frame_interval
+            self.last_frame_time = time.time()
+            self.image_index = 0
+            self.size = size
+            self.attack = attack
+            self.attack_range = attack_range
+            self.location = self.set_spawn_location()
+            self.image = self.images_fly[self.image_index]
+            self.image=pygame.transform.scale(self.image,size=self.size)
+            self.rect = self.image.get_rect(center = self.location)
+
+        def set_spawn_location(self):
+            return (random.randint(100,700), 50)
+        
+        def update_animation(self):
+            now = time.time()
+            if now - self.last_frame_time > self.frame_interval:
+                self.image_index = (self.image_index + 1) % (len(self.images_fly))
+                self.image = self.images_fly[self.image_index]
+                self.image=pygame.transform.scale(self.image,self.size)
+                self.image=pygame.transform.flip(self.image,1,0)
+                self.last_frame_time = now
+        
+        def update(self, enemies):
+            self.update_animation()
+            self.rect.center = (self.rect.center[0]+1, self.rect.center[1]+2)
+            if self.rect.centery > 300:
+                for e in enemies:
+                    distance = abs(e.rect.x - self.rect.x)
+                    if 0 < distance <= self.attack_range:
+                        e.hp -= self.attack
+                self.kill()
+
+
+            
+            
+
+
     # ---------- 初始敵人與塔 ----------
     # for i in range(3):
     #     enemies.add(Enemy(WIDTH - i*100, 300))
@@ -597,6 +698,17 @@ def play_game(screen:pygame.Surface, level_state:str):
         hover_button_surf="UI/level_up_button_1.png"
     ))
 
+    #---cast meteor---
+    meteor_spawn = pygame.event.custom_type()
+    meteors = pygame.sprite.Group()
+
+    meteor_cast_button = pygame.sprite.GroupSingle(Meteor_cast_button(
+        location=(100,180),
+        button_surf="UI/meteor_button.png",
+        hover_button_surf="UI/meteor_button.png",
+        spawning_event=meteor_spawn
+    ))
+
     # ---enemy spawning timer---
     enemy_spawn = pygame.event.custom_type()
     pygame.time.set_timer(enemy_spawn, 2000)
@@ -628,6 +740,9 @@ def play_game(screen:pygame.Surface, level_state:str):
             pause_menu_quit_button.update(screen)
 
         else:
+            #count ticks when not paused
+            g_var.ticks_since_game_start += 1
+
             # 每秒加錢
             now = time.time()
             if now - last_income_time >= 1:
@@ -771,6 +886,17 @@ def play_game(screen:pygame.Surface, level_state:str):
                         ))
                         g_var.player_money -= 100
 
+                #spawning meteors
+                if event.type == meteor_spawn:
+                    walk_images = [pygame.image.load(f"birdani/kiwi_meteor_{i}.png") for i in range(1,6)]
+                    for i in range(10):
+                        meteors.add(Meteor_Unit(
+                            images=walk_images,
+                            attack=10,
+                            attack_range=50,
+                        ))
+
+
             # 更新
             allies.update(enemies)
             enemies.update(allies)
@@ -786,6 +912,8 @@ def play_game(screen:pygame.Surface, level_state:str):
                         g_var.player_money -= level_up_button.sprite.price_to_next_level[level_up_button.sprite.level-1]
                         level_up_button.sprite.level += 1
             g_var.money_per_sec = level_up_button.sprite.money_per_second[level_up_button.sprite.level-1]
+            meteor_cast_button.update(screen, mouse_button_down_event)
+            meteors.update(enemies)
             
 
             # 檢查敵人攻擊基地
@@ -822,6 +950,8 @@ def play_game(screen:pygame.Surface, level_state:str):
             allies.draw(screen)
             enemies.draw(screen)
             character_select_boxes.draw(screen)
+            meteor_cast_button.draw(screen)
+            meteors.draw(screen)
             for arrow in arrows:
                 arrow.draw(screen)
             for effect in hit_effects:
@@ -839,6 +969,9 @@ def play_game(screen:pygame.Surface, level_state:str):
             # 顯示金錢
             money_text = font.render(f"Money: {g_var.player_money}", True, YELLOW)
             screen.blit(money_text, (10,10))
+
+            # draw meteor cd bar
+            meteor_cast_button.sprite.draw_cooldown(screen)
 
             # draw base hp box
             pygame.draw.rect(screen, RED, (WIDTH-220, 20, 200, 16))
