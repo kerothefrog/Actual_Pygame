@@ -65,7 +65,7 @@ def play_game(screen:pygame.Surface, level_state:str):
     last_income_time = time.time()
     BASE_HP = 100
     g_var.paused = False
-    g_var.player_money = 0
+    g_var.player_money = 1000
     g_var.score = 0
     g_var.money_per_sec = 3
     g_var.ticks_since_game_start = 0
