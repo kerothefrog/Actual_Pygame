@@ -106,6 +106,16 @@ class Characters_menu:
             info_text=["attack=30", "attack speed=0.5", "hp=150", "move speed=1.0", "attack range=40"]
         ))
 
+        temp = self.set_character_surf("birdani/kamakaze_bird_walk_1.png")
+        self.characters.add(Characters_info(
+            location=(440,300),
+            font=pygame.font.SysFont(None,40),
+            text="",
+            button_surf=temp[0],
+            hover_button_surf=temp[1],
+            info_text=["attack=25", "attack speed=NAN", "hp=30", "move speed=1.0", "attack range=20"]
+        ))
+
         temp = self.set_character_surf("mushrooms/mushroom_walk_1.png")
         self.characters.add(Characters_info(
             location=(300,100),

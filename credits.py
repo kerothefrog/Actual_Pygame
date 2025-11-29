@@ -24,7 +24,8 @@ class Credits:
             "Made by 黃紹洋, 鄭佑明, 郭峻愷, 葉丙祥",
             "artist: 郭峻愷",
             "Huge thanks to Angus beef for", 
-            "help on illustrations"
+            "help on illustrations",
+            "Music made by Sora AI"
         ]
         self.texts_location = (300,50)
 
