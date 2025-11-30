@@ -780,7 +780,8 @@ def play_game(screen:pygame.Surface, level_state:str):
                                 images_attack = [pygame.image.load(f"mushrooms/mushroom2_walk_{i}.png") for i in range(1,4)],
                                 hp=25,
                                 score_when_killed=50,
-                                money_when_killed=3
+                                money_when_killed=3,
+                                size=(60,60)
                             ))
 
                         elif temp ==2:
@@ -792,7 +793,8 @@ def play_game(screen:pygame.Surface, level_state:str):
                                 images_attack = [pygame.image.load(f"mushrooms/mushroom3_walk_{i}.png") for i in range(1,8)],
                                 hp=40,
                                 score_when_killed=80,
-                                money_when_killed=3
+                                money_when_killed=3,
+                                size=(75,75)
                             ))
 
                         else:
