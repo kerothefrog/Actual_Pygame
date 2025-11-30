@@ -1,4 +1,5 @@
-*** RUN THE GAME USING main.py!! ***
+***RUN THE GAME USING main.py!!***
+
 This is a tower defense game made with pygame.
 If you want to play the game, you need to install the pygame module.
 
