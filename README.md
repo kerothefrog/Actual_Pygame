@@ -1,6 +1,9 @@
-*** RUN THE GAME USING main.py!! ***
+***RUN THE GAME USING main.py!!***
+
 This is a tower defense game made with pygame.
 If you want to play the game, you need to install the pygame module.
+
+註：無傷通關boss是有可能的
 
 Made by 黃紹洋, 鄭佑明, 郭峻愷, 葉丙祥
 

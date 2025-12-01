@@ -113,7 +113,7 @@ class Characters_menu:
             text="",
             button_surf=temp[0],
             hover_button_surf=temp[1],
-            info_text=["attack=25", "attack speed=NAN", "hp=30", "move speed=1.0", "attack range=20"]
+            info_text=["attack=200", "attack speed=NAN", "hp=30", "move speed=1.0", "attack range=20"]
         ))
 
         temp = self.set_character_surf("mushrooms/mushroom_walk_1.png")

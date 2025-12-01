@@ -25,7 +25,7 @@ def spawning_timer(enemy_group:pygame.sprite.Group, level_state:str, time):
         else:
             return temp
     elif level_state == 'gameplay4':
-        if time < 11.8:
+        if time < 11:
             return 0
         else:
             return int(time/5)
@@ -65,7 +65,7 @@ def play_game(screen:pygame.Surface, level_state:str):
     last_income_time = time.time()
     BASE_HP = 100
     g_var.paused = False
-    g_var.player_money = 1000
+    g_var.player_money = 0
     g_var.score = 0
     g_var.money_per_sec = 3
     g_var.ticks_since_game_start = 0
@@ -624,7 +624,9 @@ def play_game(screen:pygame.Surface, level_state:str):
             self.rect = self.image.get_rect(center = self.location)
 
         def set_spawn_location(self):
-            return (random.randint(100,700), 50)
+            temp = (random.randint(100,700), 50)
+            bleh = random.randint(0,100)
+            return (temp[0]-bleh, temp[1]-2*bleh)
         
         def update_animation(self):
             now = time.time()
@@ -706,7 +708,8 @@ def play_game(screen:pygame.Surface, level_state:str):
         location=(100,180),
         button_surf="UI/meteor_button.png",
         hover_button_surf="UI/meteor_button.png",
-        spawning_event=meteor_spawn
+        spawning_event=meteor_spawn,
+        cd_time=15
     ))
 
     # ---enemy spawning timer---
@@ -879,7 +882,7 @@ def play_game(screen:pygame.Surface, level_state:str):
                             y=300,
                             images_walk=walk_images,
                             images_attack=attack_images,
-                            attack=25,
+                            attack=200,
                             hp=30,
                             range_type="bomber",
                             move_speed=1,
